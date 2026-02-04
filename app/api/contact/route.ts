@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         from: "Jean Lanot Portfolio <contact@portfolio.jeanlanot.com>", // ✅ Ton domaine vérifié
-        to: "contact@jeanlanot.com", // ✅ Ton adresse perso où tu reçois
+        to: "contact@portfolio.jeanlanot.com", // ✅ Ton adresse perso où tu reçois
         subject: `Nouveau message de ${name}`,
         reply_to: email, // ✅ Parfait pour répondre directement au visiteur
         text: `Nom: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
