@@ -174,12 +174,12 @@ export default function Portfolio() {
       
       {/* HEADER FIXE */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
           <div>
-            <h1 className="font-bold text-xl tracking-[-0.005em]">JEAN LANOT</h1>
-            <p className="text-gray-400 uppercase text-sm tracking-[0.07em]">Monteur Vidéo</p>
+            <h1 className="font-bold text-2xl tracking-[-0.005em]">JEAN LANOT</h1>
+            <p className="text-gray-400 uppercase text-base tracking-[0.07em]">Monteur Vidéo</p>
           </div>
-          <nav className="hidden md:flex gap-8 text-sm font-medium">
+          <nav className="hidden md:flex gap-8 text-base font-medium">
             <button onClick={() => scrollTo('portfolio')} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
             <button onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">À PROPOS</button>
             <button onClick={() => scrollTo('contact')} className="hover:text-gray-300 transition-colors">CONTACT</button>
@@ -245,7 +245,7 @@ export default function Portfolio() {
         )}
       </AnimatePresence>
 
-      <main className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
+      <main className="pt-32 pb-20 px-6 max-w-[95%] mx-auto">
         
         {/* SECTION PORTFOLIO */}
         <section id="portfolio" className="mb-32">
