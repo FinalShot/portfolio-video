@@ -1,13 +1,34 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const contactSchema = z.object({
+  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères."),
+  email: z.string().email("Email invalide."),
+  message: z.string().min(10, "Le message doit contenir au moins 10 caractères."),
+});
 
 export async function POST(request: Request) {
   try {
-    const { name, email, message } = await request.json();
+    const body = await request.json();
+    const parsed = contactSchema.safeParse(body);
 
-    if (!name || !email || !message) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "Tous les champs sont requis." },
-        { status: 400 }
+        { success: false, error: parsed.error.errors[0]?.message ?? "Données invalides." },
+        { status: 400 },
+      );
+    }
+
+    const { name, email, message } = parsed.data;
+
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const toEmail = process.env.CONTACT_EMAIL || "contact@portfolio.jeanlanot.com";
+
+    if (!resendApiKey) {
+      console.error("RESEND_API_KEY manquante");
+      return NextResponse.json(
+        { success: false, error: "Configuration serveur manquante." },
+        { status: 500 },
       );
     }
 
@@ -15,13 +36,13 @@ export async function POST(request: Request) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        Authorization: `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: "Jean Lanot Portfolio <contact@portfolio.jeanlanot.com>", // ✅ Ton domaine vérifié
-        to: "contact@portfolio.jeanlanot.com", // ✅ Ton adresse perso où tu reçois
+        from: "Jean Lanot Portfolio <contact@portfolio.jeanlanot.com>",
+        to: toEmail,
         subject: `Nouveau message de ${name}`,
-        reply_to: email, // ✅ Parfait pour répondre directement au visiteur
+        reply_to: email,
         text: `Nom: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
         html: `
           <h2>Nouveau message depuis le portfolio</h2>
@@ -29,17 +50,17 @@ export async function POST(request: Request) {
           <p><strong>Email:</strong> ${email}</p>
           <hr />
           <p><strong>Message:</strong></p>
-          <p>${message.replace(/\n/g, "<br />")}</p>
+          <p>${message.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br />")}</p>
         `,
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Resend API error:", errorData);
+      const errorData = await response.json().catch(() => null);
+      console.error("Resend API error:", errorData || response.statusText);
       return NextResponse.json(
         { success: false, error: "Erreur lors de l'envoi du message." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -48,7 +69,7 @@ export async function POST(request: Request) {
     console.error("Error sending email:", error);
     return NextResponse.json(
       { success: false, error: "Erreur lors de l'envoi du message." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
