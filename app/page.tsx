@@ -157,6 +157,8 @@ export default function Portfolio() {
     fetchVideos();
   }, []);
 
+  {/* SECTION PORTFOLIO */}
+  <section id="portfolio" className="mb-32">
 
   const categories = ["TOUT", "PUBS & BRAND CONTENT", "EMISSIONS & DOCS", "BANDES-ANNONCES", "FICTIONS"];
   
@@ -210,9 +212,6 @@ export default function Portfolio() {
               className="absolute inset-0 bg-black/80 backdrop-blur-sm"
               onClick={() => setMobileMenuOpen(false)}
             />
-            
-            {/* SECTION PORTFOLIO */}
-            <section id="portfolio" className="mb-32">
             
             {/* Menu Content */}
             <motion.nav
