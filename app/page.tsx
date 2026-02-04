@@ -179,7 +179,7 @@ export default function Portfolio() {
             <h1 className="font-bold text-4xl tracking-[-0.005em]">JEAN LANOT</h1>
           </div>
           <nav className="hidden md:flex gap-8 text-base font-medium">
-            <button onClick={() => scrollTo('portfolio')} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
+            <button onClick={() => scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
             <button onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">À PROPOS</button>
             <button onClick={() => scrollTo('contact')} className="hover:text-gray-300 transition-colors">CONTACT</button>
           </nav>
@@ -221,7 +221,7 @@ export default function Portfolio() {
             >
               <div className="flex flex-col gap-6">
                 <button 
-                  onClick={() => { scrollTo('portfolio'); setMobileMenuOpen(false); }} 
+                  onClick={() => { scrollTo({ top: 0, behavior: 'smooth' }); setMobileMenuOpen(false); }}
                   className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
                 >
                   PORTFOLIO
@@ -246,8 +246,6 @@ export default function Portfolio() {
 
       <main className="pt-32 pb-20 px-6 max-w-[95%] mx-auto">
         
-        {/* SECTION PORTFOLIO */}
-        <section id="portfolio" className="mb-32">
           {/* Filtres */}
           <div className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
             {categories.map(cat => (
