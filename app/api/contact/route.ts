@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         from: "Jean Lanot Portfolio <contact@portfolio.jeanlanot.com>",
-        to: "contact@portfolio.jeanlanot.com",
+        to: toEmail,
         subject: `Nouveau message de ${name}`,
         reply_to: email,
         text: `Nom: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
