@@ -18,10 +18,10 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Portfolio Contact <onboarding@resend.dev>",
-        to: "contact@jeanlanot.com",
+        from: "Jean Lanot Portfolio <contact@jeanlanot.com>", // ✅ Ton domaine vérifié
+        to: "contact@jeanlanot.com", // ✅ Ton adresse perso où tu reçois
         subject: `Nouveau message de ${name}`,
-        reply_to: email,
+        reply_to: email, // ✅ Parfait pour répondre directement au visiteur
         text: `Nom: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
         html: `
           <h2>Nouveau message depuis le portfolio</h2>
