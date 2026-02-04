@@ -157,6 +157,7 @@ export default function Portfolio() {
     fetchVideos();
   }, []);
 
+
   const categories = ["TOUT", "PUBS & BRAND CONTENT", "EMISSIONS & DOCS", "BANDES-ANNONCES", "FICTIONS"];
   
   const filteredVideos = filter === "TOUT" 
@@ -178,7 +179,7 @@ export default function Portfolio() {
             <h1 className="font-bold text-4xl tracking-[-0.005em]">JEAN LANOT</h1>
           </div>
           <nav className="hidden md:flex gap-8 text-base font-medium">
-            <button onClick={() => scrollTo({top: 0})} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
+            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
             <button onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">À PROPOS</button>
             <button onClick={() => scrollTo('contact')} className="hover:text-gray-300 transition-colors">CONTACT</button>
           </nav>
@@ -220,7 +221,7 @@ export default function Portfolio() {
             >
               <div className="flex flex-col gap-6">
                 <button 
-                  onClick={() => { scrollTo({top: 0}); setMobileMenuOpen(false); }} 
+                  onClick={() => { scrollTo('portfolio'); setMobileMenuOpen(false); }} 
                   className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
                 >
                   PORTFOLIO
@@ -244,7 +245,9 @@ export default function Portfolio() {
       </AnimatePresence>
 
       <main className="pt-32 pb-20 px-6 max-w-[95%] mx-auto">
-
+        
+        {/* SECTION PORTFOLIO */}
+        <section id="portfolio" className="mb-32">
           {/* Filtres */}
           <div className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
             {categories.map(cat => (
@@ -287,6 +290,7 @@ export default function Portfolio() {
           {filteredVideos.length === 0 && !loading && (
             <div className="text-center py-20 text-gray-500">Aucune vidéo trouvée dans cette catégorie. Vérifiez vos descriptions YouTube !</div>
           )}
+        </section>
 
         {/* SECTION À PROPOS */}
         <section id="about" className="mb-12 scroll-mt-32">
