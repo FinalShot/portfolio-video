@@ -243,11 +243,10 @@ export default function Portfolio() {
         )}
       </AnimatePresence>
 
-      {/* SECTION PORTFOLIO */}
-      <section id="portfolio" className="mb-32">
-      
       <main className="pt-32 pb-20 px-6 max-w-[95%] mx-auto">
 
+      {/* SECTION PORTFOLIO */}
+      <section id="portfolio" className="mb-32">
           {/* Filtres */}
           <div className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
             {categories.map(cat => (
@@ -264,7 +263,6 @@ export default function Portfolio() {
               </button>
             ))}
           </div>
-          
       </section>
 
           {/* Grille Vidéo */}
