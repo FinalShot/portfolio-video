@@ -176,8 +176,7 @@ export default function Portfolio() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
           <div>
-            <h1 className="font-bold text-2xl tracking-[-0.005em]">JEAN LANOT</h1>
-            <p className="text-gray-400 uppercase text-base tracking-[0.07em]">Monteur Vidéo</p>
+            <h1 className="font-bold text-4xl tracking-[-0.005em]">JEAN LANOT</h1>
           </div>
           <nav className="hidden md:flex gap-8 text-base font-medium">
             <button onClick={() => scrollTo('portfolio')} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
