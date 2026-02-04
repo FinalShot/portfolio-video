@@ -157,9 +157,6 @@ export default function Portfolio() {
     fetchVideos();
   }, []);
 
-  {/* SECTION PORTFOLIO */}
-  <section id="portfolio" className="mb-32">
-
   const categories = ["TOUT", "PUBS & BRAND CONTENT", "EMISSIONS & DOCS", "BANDES-ANNONCES", "FICTIONS"];
   
   const filteredVideos = filter === "TOUT" 
@@ -246,6 +243,9 @@ export default function Portfolio() {
         )}
       </AnimatePresence>
 
+      {/* SECTION PORTFOLIO */}
+      <section id="portfolio" className="mb-32">
+      
       <main className="pt-32 pb-20 px-6 max-w-[95%] mx-auto">
 
           {/* Filtres */}
@@ -264,6 +264,8 @@ export default function Portfolio() {
               </button>
             ))}
           </div>
+          
+      </section>
 
           {/* Grille Vidéo */}
           {loading ? (
@@ -290,7 +292,6 @@ export default function Portfolio() {
           {filteredVideos.length === 0 && !loading && (
             <div className="text-center py-20 text-gray-500">Aucune vidéo trouvée dans cette catégorie. Vérifiez vos descriptions YouTube !</div>
           )}
-        </section>
 
         {/* SECTION À PROPOS */}
         <section id="about" className="mb-12 scroll-mt-32">
