@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const { name, email, message } = parsed.data;
 
     const resendApiKey = process.env.RESEND_API_KEY;
-    const toEmail = process.env.CONTACT_EMAIL || "contact@portfolio.jeanlanot.com";
+    const toEmail = process.env.CONTACT_EMAIL || "contact@jeanlanot.com";
 
     if (!resendApiKey) {
       console.error("RESEND_API_KEY manquante");
