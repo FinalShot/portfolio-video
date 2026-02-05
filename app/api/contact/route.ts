@@ -18,8 +18,8 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "onboarding@resend.dev", // Default Resend sender (works without domain verification)
-        to: process.env.CONTACT_EMAIL || "contact@jeanlanot.com", // Uses CONTACT_EMAIL env variable
+        from: "Jean Lanot Portfolio <contact@portfolio.jeanlanot.com>", // ✅ Ton domaine vérifié
+        to: "contact@jeanlanot.com", // ✅ Ton adresse perso où tu reçois
         subject: `Nouveau message de ${name}`,
         reply_to: email, // ✅ Parfait pour répondre directement au visiteur
         text: `Nom: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,

@@ -309,7 +309,7 @@ const element = document.getElementById(id);
                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
                   {/* METS TA PHOTO DANS LE DOSSIER /public ET CHANGE LE SRC ICI */}
                   <img 
-                    src="/ma-photo.jpg" 
+                    src="/ma-photo.webp" 
                     alt="Jean Lanot" 
                     className="w-full h-full object-cover"
                     onError={(e) => {e.currentTarget.src = "https://placehold.co/400x400/222/FFF?text=JL"}} // Fallback si pas de photo
