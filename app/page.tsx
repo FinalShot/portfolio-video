@@ -290,10 +290,10 @@ const element = document.getElementById(id);
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
                   duration: 0.6,
-                  delay: index * 0.08,
+                  delay: 0.2 + index * 0.08,
                   ease: "easeOut"
                 }}
-                className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border transition-all duration-300 ${
+                className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border ${
                   filter === cat
                     ? "bg-white/90 text-black border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
                     : "bg-white/5 backdrop-blur-md text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/30 hover:text-white shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
