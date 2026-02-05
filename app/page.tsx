@@ -174,6 +174,7 @@ const element = document.getElementById(id);
         top: offsetPosition,
         behavior: "smooth"
       });
+        }
     };
 
   return (
