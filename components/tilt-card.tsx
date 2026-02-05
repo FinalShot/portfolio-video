@@ -142,14 +142,6 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
             )}
           </motion.div>
         </div>
-        
-        {/* Icône play - apparaît au hover */}
-        <motion.div
-          animate={{ opacity: isHover ? 1 : 0 }}
-          className="absolute inset-0 flex items-center justify-center"
-        >
-          <Play className="w-16 h-16 text-white drop-shadow-lg" />
-        </motion.div>
 
         {/* Border glow on hover */}
         <motion.div
