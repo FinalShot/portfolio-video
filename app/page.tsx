@@ -196,7 +196,7 @@ const element = document.getElementById(id);
           <motion.nav
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
             className="hidden md:flex gap-8 text-base font-medium">
             <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
             <button onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">À PROPOS</button>
@@ -271,7 +271,7 @@ const element = document.getElementById(id);
           <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
           className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
             {categories.map(cat => (
               <button
@@ -296,7 +296,7 @@ const element = document.getElementById(id);
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
               <AnimatePresence>
                 {filteredVideos.map((video) => (
@@ -325,7 +325,7 @@ const element = document.getElementById(id);
         id="about"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
+        transition={{ duration: 0.6, delay: 0.6 }}
         className="mb-12 scroll-mt-32">
           <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
             <div className="flex flex-col md:flex-row items-center gap-10">
@@ -360,7 +360,7 @@ const element = document.getElementById(id);
         id="contact"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
+        transition={{ duration: 0.6, delay: 0.75 }}
         className="scroll-mt-32">
           <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
             <h2 className="text-2xl font-bold mb-8">CONTACT</h2>
