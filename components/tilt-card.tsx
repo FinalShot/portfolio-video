@@ -58,7 +58,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
   return (
     <motion.div
       ref={cardRef}
-      className={`relative cursor-pointer ${getHeightClass()} w-full`}
+      className={`relative cursor-pointer ${getHeightClass()} w-full pointer-events-auto`}
       style={{
         perspective: 1000,
       }}
