@@ -80,20 +80,28 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           />
         </div>
 
-        {/* Overlays */}
+        {/* Overlay de base */}
         <motion.div
-          className="absolute inset-0 bg-black/60"
-          animate={{ opacity: isHovered ? 0.2 : 0.5 }}
+          className="absolute inset-0 bg-black/40"
+          animate={{ opacity: isHovered ? 0.1 : 0.4 }}
           transition={{ duration: 0.3 }}
         />
 
-        {/* Glare effect */}
+        {/* Gradient dégradé du bas (titre) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
+
+        {/* Glare effect qui suit la souris */}
         <motion.div
           className="pointer-events-none absolute inset-0"
           style={{
-            background: `radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 60%)`,
-            backgroundPosition: `${glareX} ${glareY}`,
+            background: `radial-gradient(circle 400px, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 30%, transparent 70%)`,
+            backgroundSize: '400px 400px',
+            backgroundRepeat: 'no-repeat',
+            backgroundPositionX: glareX,
+            backgroundPositionY: glareY,
             opacity: isHovered ? 1 : 0,
+            mixBlendMode: 'overlay', // ← Effet de lumière plus naturel
+            transition: 'opacity 0.3s ease',
           }}
         />
 
