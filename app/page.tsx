@@ -119,6 +119,10 @@ export default function Portfolio() {
   const [filter, setFilter] = useState("TOUT");
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  }, []);
 
   // Récupération des vidéos via API route sécurisée
   useEffect(() => {
@@ -277,12 +281,7 @@ const element = document.getElementById(id);
         {/* SECTION PORTFOLIO */}
         <section id="portfolio" className="mb-32">
           {/* Filtres */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start"
-          >
+          <div className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
             {categories.map((cat, index) => (
               <motion.button
                 key={cat}
@@ -299,7 +298,7 @@ const element = document.getElementById(id);
                 {cat}
               </motion.button>
             ))}
-          </motion.div>
+          </div>
 
 
           {/* Grille Vidéo */}
