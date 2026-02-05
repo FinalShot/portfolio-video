@@ -184,13 +184,24 @@ const element = document.getElementById(id);
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
           <div>
-            <h1 className="font-bold text-4xl tracking-[-0.005em]">JEAN LANOT</h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0 }}
+            className="font-bold text-4xl tracking-[-0.005em]"
+          >
+            JEAN LANOT
+          </motion.h1>
           </div>
-          <nav className="hidden md:flex gap-8 text-base font-medium">
+          <motion.nav
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="hidden md:flex gap-8 text-base font-medium">
             <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
             <button onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">À PROPOS</button>
             <button onClick={() => scrollTo('contact')} className="hover:text-gray-300 transition-colors">CONTACT</button>
-          </nav>
+          </motion.nav>
           
           {/* Burger Menu Button - Mobile Only */}
           <button 
@@ -228,7 +239,7 @@ const element = document.getElementById(id);
               className="absolute top-0 right-0 h-full w-64 bg-[#0a0a0a] border-l border-white/10 pt-24 px-6"
             >
               <div className="flex flex-col gap-6">
-                <button 
+                <button
                   onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setMobileMenuOpen(false); }} 
                   className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
                 >
@@ -257,7 +268,11 @@ const element = document.getElementById(id);
         {/* SECTION PORTFOLIO */}
         <section id="portfolio" className="mb-32">
           {/* Filtres */}
-          <div className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
+          <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
             {categories.map(cat => (
               <button
                 key={cat}
@@ -277,7 +292,12 @@ const element = document.getElementById(id);
           {loading ? (
             <div className="text-center py-20 text-gray-500 animate-pulse">Chargement des projets...</div>
           ) : (
-            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
+            <motion.div
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
               <AnimatePresence>
                 {filteredVideos.map((video) => (
                   <motion.div
@@ -301,7 +321,12 @@ const element = document.getElementById(id);
         </section>
 
         {/* SECTION À PROPOS */}
-        <section id="about" className="mb-12 scroll-mt-32">
+        <motion.section
+        id="about"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+        className="mb-12 scroll-mt-32">
           <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
             <div className="flex flex-col md:flex-row items-center gap-10">
               {/* PHOTO - À REMPLACER */}
@@ -331,7 +356,12 @@ const element = document.getElementById(id);
         </section>
 
         {/* SECTION CONTACT */}
-        <section id="contact" className="scroll-mt-32">
+        <motion.section
+        id="contact"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+        className="scroll-mt-32">
           <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
             <h2 className="text-2xl font-bold mb-8">CONTACT</h2>
             {/* Formulaire de contact */}
