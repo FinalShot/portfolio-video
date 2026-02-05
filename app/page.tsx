@@ -36,7 +36,7 @@ interface Video {
 }
 
 // --- COMPOSANT: TILT CARD (Ton effet "Monstre") ---
-function TiltCard({ video }) {
+function TiltCard({ video }: { video: Video }) {
   const [isHover, setHover] = useState(false);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
