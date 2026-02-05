@@ -306,14 +306,8 @@ const element = document.getElementById(id);
 
 
           {/* Grille Vidéo */}
-          {loading ? (
-            <div className="text-center py-20 text-gray-500 animate-pulse">Chargement des projets...</div>
-          ) : (
             <motion.div
             layout
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.55 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
               <AnimatePresence>
                 {filteredVideos.map((video) => (
@@ -330,7 +324,6 @@ const element = document.getElementById(id);
                 ))}
               </AnimatePresence>
             </motion.div>
-          )}
           
           {filteredVideos.length === 0 && !loading && (
             <div className="text-center py-20 text-gray-500">Aucune vidéo trouvée dans cette catégorie. Vérifiez vos descriptions YouTube !</div>
