@@ -166,8 +166,15 @@ export default function Portfolio() {
 
   // Fonction de scroll fluide
   const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  };
+const element = document.getElementById(id);
+    if (element) {
+      const headerHeight = 80; // h-20 = 80px
+      const offsetPosition = element.offsetTop - headerHeight;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
