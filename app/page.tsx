@@ -303,7 +303,7 @@ export default function Portfolio() {
               <div className="shrink-0">
                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
                   <Image
-                    src="/ma-photo.jpg"
+                    src="/public/ma-photo.webp"
                     alt="Jean Lanot"
                     fill
                     className="object-cover"
