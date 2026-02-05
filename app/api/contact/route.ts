@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Jean Lanot Portfolio tact@portfolio.jeanlanot.com>",
+        from: "Jean Lanot Portfolio contact@portfolio.jeanlanot.com>",
         to: process.env.CONTACT_EMAIL || "contact@jeanlanot.com",
         subject: `Nouveau message de ${safeName}`,
         reply_to: email,
