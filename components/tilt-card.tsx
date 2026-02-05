@@ -123,7 +123,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           <motion.div
             initial={{ y: 10, opacity: 0 }}
             animate={{
-              y: isHovered ? 0 : 10,
+              y: isHovered ? 20 : 0,
               opacity: isHovered ? 0 : 1
             }}
             transition={{ duration: 0.3 }}
