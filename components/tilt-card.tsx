@@ -115,7 +115,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
 
         {/* Content */}
         <div className="absolute inset-0 flex flex-col justify-end p-5">
-        {/* Play button - STYLE YOUTUBE AUTHENTIQUE */}
+        {/* Play button - VRAI LOGO YOUTUBE */}
         <motion.div
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
           initial={{ opacity: 0, scale: 0.8 }}
@@ -125,8 +125,9 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           }}
           transition={{ duration: 0.2 }}
         >
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-600 backdrop-blur-sm shadow-xl">
-            <Play className="h-7 w-7 fill-white text-white ml-1" />
+          {/* Rectangle rouge avec play blanc */}
+          <div className="flex items-center justify-center w-20 h-14 rounded-xl bg-red-600 shadow-xl">
+            <Play className="h-6 w-6 fill-white text-white ml-0.5" />
           </div>
         </motion.div>
 
