@@ -5,7 +5,6 @@ import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from
 import { Mail, Phone, Play, ArrowRight, Menu, X } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { TiltCard } from "@/components/tilt-card";
-import { VideoModal } from "@/components/video-modal";
 import type { Video } from "@/lib/videos";
 
 // --- CONFIGURATION ---
@@ -35,9 +34,6 @@ export default function Portfolio() {
   const [filter, setFilter] = useState("TOUT");
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -108,16 +104,6 @@ export default function Portfolio() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
-    
-    <VideoModal
-          video={selectedVideo}
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedVideo(null);
-          }}
-        />
-      
       {/* HEADER FIXE */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
@@ -252,14 +238,23 @@ export default function Portfolio() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <TiltCard
-                  video={video}
-                  onClick={() => {
-                          console.log("Click détecté sur:", video.title); // ← AJOUTE CE LOG
-                          setSelectedVideo(video);
-                          setIsModalOpen(true);
-                        }}
-                  />
+                <TiltCard
+                      video={video}
+                      onClick={() => {
+                        // Ouvrir directement dans un nouvel onglet
+                        let url = '';
+                        
+                        if (video.youtubeId) {
+                          url = `https://www.youtube.com/watch?v=${video.youtubeId}`;
+                        } else if (video.videoUrl) {
+                          url = video.videoUrl;
+                        }
+                        
+                        if (url) {
+                          window.open(url, '_blank', 'noopener,noreferrer');
+                        }
+                      }}
+                    />
                 </motion.div>
               ))}
             </AnimatePresence>
