@@ -5,6 +5,7 @@ import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from
 import { Mail, Phone, Play, ArrowRight, Menu, X } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { TiltCard } from "@/components/tilt-card";
+import type { Video } from "@/lib/videos";
 
 // --- CONFIGURATION ---
 // Vidéos externes (Vimeo, Instagram, etc.)
@@ -24,18 +25,6 @@ const EXTERNAL_VIDEOS = [
     date: "2024-08-09"
   }
 ];
-
-// Type pour les vidéos
-interface Video {
-  id: string;
-  title: string;
-  thumbnail: string;
-  link: string;
-  realPublishDate: string;
-  autoCategory: string;
-  source: string;
-  description?: string;
-}
 
 // --- PAGE PRINCIPALE ---
 export default function Portfolio() {
