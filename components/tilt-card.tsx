@@ -8,7 +8,7 @@ import { Play } from "lucide-react";
 
 interface TiltCardProps {
   video: Video;
-  onClick: () => void;
+  onClick?: () => void; // Rendu optionnel pour éviter les erreurs de build
 }
 
 export function TiltCard({ video, onClick }: TiltCardProps) {
@@ -68,14 +68,14 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
       onClick={onClick}
     >
       <motion.div
-        className="relative h-full w-full rounded-xl overflow-hidden"
+        className="relative h-full w-full rounded-xl overflow-hidden border border-white/5"
         style={{
           rotateX,
           rotateY,
           transformStyle: "preserve-3d",
         }}
       >
-        {/* 🎯 OPTIMIZED IMAGE - Remplace l'ancien div backgroundImage */}
+        {/* IMAGE */}
         <div className="absolute inset-0">
           <Image
             src={video.thumbnail}
@@ -83,18 +83,17 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            priority={false} // lazy load par défaut
-            quality={80} // compression JPEG
-            placeholder="blur" // blurred placeholder pendant le chargement
+            quality={85}
+            placeholder="blur"
             blurDataURL={`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E`}
             onLoadingComplete={() => setImageLoaded(true)}
           />
         </div>
 
-        {/* Dark overlay */}
+        {/* Overlays */}
         <motion.div
-          className="absolute inset-0 bg-background/60"
-          animate={{ opacity: isHovered ? 0.3 : 0.5 }}
+          className="absolute inset-0 bg-black/60"
+          animate={{ opacity: isHovered ? 0.2 : 0.5 }}
           transition={{ duration: 0.3 }}
         />
 
@@ -102,14 +101,14 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
         <motion.div
           className="pointer-events-none absolute inset-0"
           style={{
-            background: `radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 60%)`,
+            background: `radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 60%)`,
             backgroundPosition: `${glareX} ${glareY}`,
             opacity: isHovered ? 1 : 0,
           }}
         />
 
         {/* Content */}
-        <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-5">
+        <div className="absolute inset-0 flex flex-col justify-end p-5">
           {/* Play button */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center pointer-events-none"
@@ -120,8 +119,8 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
             }}
             transition={{ duration: 0.2 }}
           >
-            <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-full bg-foreground/90 backdrop-blur-sm">
-              <Play className="h-6 w-6 md:h-7 md:w-7 fill-background text-background ml-1" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-xl">
+              <Play className="h-7 w-7 fill-black text-black ml-1" />
             </div>
           </motion.div>
 
@@ -129,21 +128,21 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           <motion.div
             initial={{ y: 0, opacity: 1 }}
             animate={{
-              y: isHovered ? -20 : 0,
+              y: isHovered ? -10 : 0,
               opacity: isHovered ? 0 : 1,
             }}
             transition={{ duration: 0.3 }}
             style={{ transform: "translateZ(30px)" }}
           >
-            <span className="text-xs font-medium uppercase tracking-wider text-accent">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
               {video.category}
             </span>
-            <h3 className="mt-1 text-lg md:text-xl font-semibold text-foreground">
+            <h3 className="mt-1 text-lg md:text-xl font-bold text-white line-clamp-2">
               {video.title}
             </h3>
-            {video.client && (
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                {video.client} · {video.year}
+            {(video.client || video.year) && (
+              <p className="mt-1 text-xs font-medium text-white/40 uppercase tracking-wider">
+                {[video.client, video.year].filter(Boolean).join(" · ")}
               </p>
             )}
           </motion.div>
@@ -151,11 +150,9 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
 
         {/* Border glow on hover */}
         <motion.div
-          className="absolute inset-0 rounded-xl border border-accent/0"
+          className="absolute inset-0 rounded-xl border border-white/20 pointer-events-none"
           animate={{
-            borderColor: isHovered
-              ? "oklch(0.65 0.15 180 / 0.5)"
-              : "oklch(0.65 0.15 180 / 0)",
+            opacity: isHovered ? 1 : 0,
           }}
           transition={{ duration: 0.3 }}
         />
