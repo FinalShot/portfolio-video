@@ -44,23 +44,13 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
     y.set(0.5);
   };
 
-  const getHeightClass = () => {
-    switch (video.aspectRatio) {
-      case "portrait":
-        return "h-[400px] md:h-[480px]";
-      case "square":
-        return "h-[280px] md:h-[320px]";
-      default:
-        return "h-[220px] md:h-[260px]";
-    }
-  };
-
   return (
     <motion.div
       ref={cardRef}
-      className={`relative cursor-pointer ${getHeightClass()} w-full pointer-events-auto`}
+      className="relative cursor-pointer w-full pointer-events-auto"
       style={{
         perspective: 1000,
+        aspectRatio: "16 / 9",
       }}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
