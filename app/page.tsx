@@ -50,14 +50,20 @@ export default function Portfolio() {
 
         // 2. Formater les vidéos externes
         const formattedExternalVideos: Video[] = EXTERNAL_VIDEOS.map(vid => ({
-          id: vid.videoUrl,
-          title: vid.title,
-          thumbnail: vid.thumbnailUrl,
-          link: vid.videoUrl,
-          realPublishDate: new Date(vid.date).toISOString(),
-          autoCategory: vid.category,
-          source: "external"
+            id: vid.videoUrl,
+            title: vid.title,
+            thumbnail: vid.thumbnailUrl,
+            link: vid.link,
+            realPublishDate: vid.realPublishDate,
+            autoCategory: vid.autoCategory,
+            source: vid.source,
+            // Ajoute les propriétés manquantes :
+            category: vid.category || 'TOUT', // ou la valeur par défaut appropriée
+            youtubeId: vid.youtubeId || '',
+            year: vid.year || new Date().getFullYear(),
+            aspectRatio: vid.aspectRatio || '16:9', // ou autre ratio par défaut
         }));
+
 
         // 3. Fusionner et trier par date
         const allVideos = [...youtubeVideos, ...formattedExternalVideos];
