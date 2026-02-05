@@ -1,7 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rateLimit";
+import type { Video } from "@/lib/videos";
 
-const PLAYLIST_IDS: Record<string, string> = {
+const YOUTUBE_PLAYLIST_IDS: Record<string, string> = {
   "PUBS & BRAND CONTENT": "PLikZKcR_ooRCVFgNcJ-f8GDN-rO8HYM0F",
   "EMISSIONS & DOCS": "PLikZKcR_ooRAYr18pyDSFHFhBUUN9kQOf",
   "BANDES-ANNONCES": "PLikZKcR_ooRBcDzII69qz11FoZOk5-Lh8",
@@ -9,15 +10,7 @@ const PLAYLIST_IDS: Record<string, string> = {
 };
 
 interface CacheEntry {
-  data: Array<{
-    id: string;
-    title: string;
-    thumbnail: string;
-    link: string;
-    realPublishDate: string;
-    autoCategory: string;
-    source: string;
-  }>;
+  data: Video[];
   timestamp: number;
 }
 
@@ -62,17 +55,9 @@ export async function GET(request: NextRequest) {
 
     console.log("🔄 Fetching videos from YouTube API");
 
-    const allVideos: Array<{
-      id: string;
-      title: string;
-      thumbnail: string;
-      link: string;
-      realPublishDate: string;
-      autoCategory: string;
-      source: string;
-    }> = [];
+    const allVideos: Video[] = [];
 
-    const promises = Object.entries(PLAYLIST_IDS).map(
+    const promises = Object.entries(YOUTUBE_PLAYLIST_IDS).map(
       async ([categoryName, playlistId]) => {
         try {
           const res = await fetch(
@@ -103,18 +88,22 @@ export async function GET(request: NextRequest) {
                 contentDetails: {
                   videoPublishedAt: string;
                 };
-              }) => ({
-                id: item.snippet.resourceId.videoId,
-                title: item.snippet.title,
-                thumbnail:
-                  item.snippet.thumbnails?.maxres?.url ||
-                  item.snippet.thumbnails?.high?.url ||
-                  "",
-                link: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
-                realPublishDate: item.contentDetails.videoPublishedAt,
-                autoCategory: categoryName,
-                source: "youtube",
-              })
+              }) => {
+                const publishDate = new Date(item.contentDetails.videoPublishedAt);
+                return {
+                  id: item.snippet.resourceId.videoId,
+                  title: item.snippet.title,
+                  category: categoryName as "PUBS & BRAND CONTENT" | "EMISSIONS & DOCS" | "BANDES-ANNONCES" | "FICTIONS",
+                  thumbnail:
+                    item.snippet.thumbnails?.maxres?.url ||
+                    item.snippet.thumbnails?.high?.url ||
+                    "",
+                  youtubeId: item.snippet.resourceId.videoId,
+                  year: publishDate.getFullYear(),
+                  aspectRatio: "landscape" as const,
+                  description: item.snippet.title,
+                } as Video;
+              }
             );
           }
 
@@ -129,10 +118,9 @@ export async function GET(request: NextRequest) {
     const results = await Promise.all(promises);
     allVideos.push(...results.flat());
 
+    // Tri par date (plus récent d'abord)
     allVideos.sort(
-      (a, b) =>
-        new Date(b.realPublishDate).getTime() -
-        new Date(a.realPublishDate).getTime()
+      (a, b) => b.year - a.year
     );
 
     cache[cacheKey] = {
