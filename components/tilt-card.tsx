@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import type { Video } from "@/lib/videos";
-import { Play } from "lucide-react";
+import { Play, Youtube } from "lucide-react";
 
 interface TiltCardProps {
   video: Video;
@@ -126,7 +126,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
             transition={{ duration: 0.2 }}
           >
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-xl">
-              <Play className="h-7 w-7 fill-black text-black ml-1" />
+              <Youtube className="h-7 w-7 fill-black text-black ml-1" />
             </div>
           </motion.div>
 
