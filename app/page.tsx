@@ -5,6 +5,7 @@ import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from
 import { Mail, Phone, Play, ArrowRight, Menu, X } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { TiltCard } from "@/components/tilt-card";
+import { VideoModal } from "@/components/video-modal";
 import type { Video } from "@/lib/videos";
 
 // --- CONFIGURATION ---
