@@ -187,7 +187,7 @@ const element = document.getElementById(id);
             <h1 className="font-bold text-4xl tracking-[-0.005em]">JEAN LANOT</h1>
           </div>
           <nav className="hidden md:flex gap-8 text-base font-medium">
-            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' }) className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
+            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
             <button onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">À PROPOS</button>
             <button onClick={() => scrollTo('contact')} className="hover:text-gray-300 transition-colors">CONTACT</button>
           </nav>
