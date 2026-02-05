@@ -45,10 +45,11 @@ export default function Portfolio() {
       try {
         setLoading(true);
         
-        // 1. Charger les vidéos YouTube via l'API route
+        // 1. Charger les vidéos YouTube (déjà au bon format !)
         const youtubeRes = await fetch("/api/youtube");
         const youtubeData = await youtubeRes.json();
         const youtubeVideos: Video[] = youtubeData.videos || [];
+        // ← Plus besoin de mapper ! L'API retourne déjà le bon format
 
         // 2. Formater les vidéos externes
         const formattedExternalVideos: Video[] = EXTERNAL_VIDEOS.map(vid => ({
@@ -56,21 +57,28 @@ export default function Portfolio() {
           title: vid.title,
           category: vid.category,
           thumbnail: vid.thumbnailUrl,
-          youtubeId: '', // Pas de YouTube ID pour les vidéos externes
+          youtubeId: '',
+          videoUrl: vid.videoUrl,
           year: new Date(vid.date).getFullYear(),
           publishedAt: new Date(vid.date),
           aspectRatio: vid.aspectRatio,
         }));
 
-        // 3. Fusionner et trier par date
-        // Note: Si tes vidéos YouTube n'ont pas de date, il faut l'ajouter au type Video
+        // 3. Fusionner
         const allVideos = [...youtubeVideos, ...formattedExternalVideos];
-        // Enlève ce tri si tu n'as pas de propriété 'date' dans Video
+
+        // 4. TRIER par date (important car on mélange YouTube + Externes)
         allVideos.sort((a, b) => {
-                const dateA = new Date(a.publishedAt).getTime();
-                const dateB = new Date(b.publishedAt).getTime();
-                return dateB - dateA; // Décroissant = plus récent en premier
-              });
+          const dateA = new Date(a.publishedAt).getTime();
+          const dateB = new Date(b.publishedAt).getTime();
+          return dateB - dateA;
+        });
+
+        console.log("✅ Videos triées:", allVideos.map(v => ({
+          title: v.title.substring(0, 30),
+          date: v.publishedAt,
+          source: v.youtubeId ? 'YouTube' : 'Externe'
+        })));
         
         setVideos(allVideos);
       } catch (error) {

@@ -100,6 +100,7 @@ export async function GET(request: NextRequest) {
                     "",
                   youtubeId: item.snippet.resourceId.videoId,
                   year: publishDate.getFullYear(),
+                  publishedAt: publishDate,
                   aspectRatio: "landscape" as const,
                   description: item.snippet.title,
                 } as Video;
@@ -119,9 +120,11 @@ export async function GET(request: NextRequest) {
     allVideos.push(...results.flat());
 
     // Tri par date (plus récent d'abord)
-    allVideos.sort(
-      (a, b) => b.year - a.year
-    );
+      allVideos.sort((a, b) => {
+        const dateA = new Date(a.publishedAt).getTime();
+        const dateB = new Date(b.publishedAt).getTime();
+        return dateB - dateA;
+      });
 
     cache[cacheKey] = {
       data: allVideos,
