@@ -118,22 +118,13 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
             </div>
           </motion.div>
           
-          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors duration-300">
-            {/* Ajoute un play icon au centre au hover */}
-            <motion.div
-              animate={{ opacity: isHover ? 1 : 0 }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <Play className="w-16 h-16 text-white drop-shadow-lg" />
-            </motion.div>
-          </div>
 
           {/* Video info */}
           <motion.div
             initial={{ y: 10, opacity: 0 }}
             animate={{
               y: isHovered ? 0 : 10,
-              opacity: isHovered ? 1 : 0.8,
+              opacity: isHovered ? 0 : 1
             }}
             transition={{ duration: 0.3 }}
             style={{ transform: "translateZ(30px)" }}
@@ -151,6 +142,14 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
             )}
           </motion.div>
         </div>
+        
+        {/* Icône play - apparaît au hover */}
+        <motion.div
+          animate={{ opacity: isHover ? 1 : 0 }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <Play className="w-16 h-16 text-white drop-shadow-lg" />
+        </motion.div>
 
         {/* Border glow on hover */}
         <motion.div
