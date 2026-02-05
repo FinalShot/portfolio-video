@@ -112,7 +112,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
         <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-5">
           {/* Play button */}
           <motion.div
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{
               opacity: isHovered ? 1 : 0,
@@ -127,9 +127,9 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
 
           {/* Video info */}
           <motion.div
-            initial={{ y: 10, opacity: 0 }}
+            initial={{ y: 0, opacity: 1 }}
             animate={{
-              y: isHovered ? 20 : 0,
+              y: isHovered ? -20 : 0,
               opacity: isHovered ? 0 : 1,
             }}
             transition={{ duration: 0.3 }}
