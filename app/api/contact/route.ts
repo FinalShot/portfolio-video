@@ -3,23 +3,23 @@ import { rateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(request: NextRequest) {
   try {
+    // ✅ RATE LIMITING: Max 3 emails par 5 minutes par IP
     const ip = getClientIp(request);
-    const isAllowed = rateLimit(ip, 3, 5 * 60 * 1000); // 3 emails per 5 min
+    const isAllowed = rateLimit(ip, 3, 5 * 60 * 1000); // 5 minutes
 
     if (!isAllowed) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Trop de requêtes. Veuillez réessayer dans quelques minutes.",
+          error: "Trop de requêtes. Veuillez réessayer dans quelques minutes.",
         },
-        { status: 429 }
+        { status: 429 } // Too Many Requests
       );
     }
 
     const { name, email, message } = await request.json();
 
-    // Validation
+    // ✅ VALIDATION: Vérifier que les champs ne sont pas vides
     if (!name || !email || !message) {
       return NextResponse.json(
         { success: false, error: "Tous les champs sont requis." },
@@ -27,26 +27,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ✅ VALIDATION: Limiter les longueurs
     if (name.length > 100) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Le nom est trop long (max 100 caractères).",
-        },
+        { success: false, error: "Le nom est trop long (max 100 caractères)." },
         { status: 400 }
       );
     }
 
     if (message.length > 5000) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Le message est trop long (max 5000 caractères).",
-        },
+        { success: false, error: "Le message est trop long (max 5000 caractères)." },
         { status: 400 }
       );
     }
 
+    // ✅ VALIDATION: Email basique
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -55,7 +51,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Sanitize HTML
+    // ✅ SANITIZATION: Échappe les HTML tags pour éviter XSS
     const sanitize = (str: string) =>
       str
         .replace(/&/g, "&amp;")
@@ -74,7 +70,7 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Jean Lanot Portfolio tact@portfolio.jeanlanot.com>",
+        from: "Jean Lanot Portfolio contact@portfolio.jeanlanot.com>",
         to: process.env.CONTACT_EMAIL || "contact@jeanlanot.com",
         subject: `Nouveau message de ${safeName}`,
         reply_to: email,
@@ -94,6 +90,7 @@ export async function POST(request: NextRequest) {
       const errorData = await response.json();
       console.error("Resend API error:", errorData);
 
+      // ❌ Don't expose internal API errors to user
       return NextResponse.json(
         {
           success: false,
@@ -107,6 +104,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error sending email:", error);
 
+    // ❌ Don't expose internal errors
     return NextResponse.json(
       {
         success: false,
