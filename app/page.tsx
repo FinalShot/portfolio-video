@@ -169,7 +169,7 @@ export default function Portfolio() {
     : videos.filter(v => v.autoCategory === filter);
 
   // Fonction de scroll fluide
-  const scrollTo = (id) => {
+  const scrollTo = (id: string) => {
 const element = document.getElementById(id);
     if (element) {
       const headerHeight = 80; // h-20 = 80px
