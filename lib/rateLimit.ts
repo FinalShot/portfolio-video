@@ -1,5 +1,4 @@
-// Simple in-memory rate limiter
-// For production, use Redis/KV store instead
+import { NextRequest } from "next/server";
 
 interface RateLimitStore {
   [key: string]: {
@@ -11,39 +10,35 @@ interface RateLimitStore {
 const store: RateLimitStore = {};
 
 export function rateLimit(
-  identifier: string, // IP address or user ID
-  limit: number = 5, // max requests
-  windowMs: number = 60000 // 1 minute in ms
+  identifier: string,
+  limit: number = 5,
+  windowMs: number = 60000
 ): boolean {
   const now = Date.now();
-  const key = `${identifier}`;
 
-  // Si la clé n'existe pas ou que le window est expiré, réinitialise
-  if (!store[key] || now > store[key].resetTime) {
-    store[key] = {
+  if (!store[identifier] || now > store[identifier].resetTime) {
+    store[identifier] = {
       count: 1,
       resetTime: now + windowMs,
     };
-    return true; // Requête autorisée
+    return true;
   }
 
-  // Si on a pas dépassé la limite
-  if (store[key].count < limit) {
-    store[key].count++;
-    return true; // Requête autorisée
+  if (store[identifier].count < limit) {
+    store[identifier].count++;
+    return true;
   }
 
-  // Limite dépassée
-  return false; // Requête refusée
+  return false;
 }
 
-export function getClientIp(request: Request): string {
+export function getClientIp(request: NextRequest | Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
   return ip;
 }
 
-// Cleanup old entries every hour (prevent memory leak)
+// Cleanup every hour
 setInterval(() => {
   const now = Date.now();
   Object.keys(store).forEach((key) => {
@@ -52,4 +47,3 @@ setInterval(() => {
     }
   });
 }, 3600000);
-

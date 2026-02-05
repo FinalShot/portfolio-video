@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { rateLimit, getClientIp } from "@/lib/rateLimit";
 
 const PLAYLIST_IDS: Record<string, string> = {
@@ -8,25 +8,32 @@ const PLAYLIST_IDS: Record<string, string> = {
   FICTIONS: "PLikZKcR_ooRBvbYlqu2rHz4-oge2Qps4a",
 };
 
-// ✅ CACHE: Stockage en mémoire avec expiration
 interface CacheEntry {
-  data: any;
+  data: Array<{
+    id: string;
+    title: string;
+    thumbnail: string;
+    link: string;
+    realPublishDate: string;
+    autoCategory: string;
+    source: string;
+  }>;
   timestamp: number;
 }
 
 const cache: Record<string, CacheEntry> = {};
-const CACHE_DURATION = 60 * 60 * 1000; // 1 heure en millisecondes
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    // ✅ RATE LIMITING: Max 10 requêtes par minute par IP
     const ip = getClientIp(request);
-    const isAllowed = rateLimit(ip, 10, 60 * 1000); // 1 minute
+    const isAllowed = rateLimit(ip, 10, 60 * 1000);
 
     if (!isAllowed) {
       return NextResponse.json(
         {
-          error: "Trop de requêtes. Veuillez réessayer dans quelques instants.",
+          error:
+            "Trop de requêtes. Veuillez réessayer dans quelques instants.",
         },
         { status: 429 }
       );
@@ -42,7 +49,6 @@ export async function GET(request: Request) {
       );
     }
 
-    // ✅ CHECK CACHE: Si les données sont en cache et pas expirées
     const cacheKey = "youtube_videos";
     const now = Date.now();
 
@@ -56,7 +62,6 @@ export async function GET(request: Request) {
 
     console.log("🔄 Fetching videos from YouTube API");
 
-    // ✅ FETCH: Récupérer les vidéos depuis YouTube
     const allVideos: Array<{
       id: string;
       title: string;
@@ -103,7 +108,8 @@ export async function GET(request: Request) {
                 title: item.snippet.title,
                 thumbnail:
                   item.snippet.thumbnails?.maxres?.url ||
-                  item.snippet.thumbnails?.high?.url,
+                  item.snippet.thumbnails?.high?.url ||
+                  "",
                 link: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
                 realPublishDate: item.contentDetails.videoPublishedAt,
                 autoCategory: categoryName,
@@ -123,14 +129,12 @@ export async function GET(request: Request) {
     const results = await Promise.all(promises);
     allVideos.push(...results.flat());
 
-    // Tri par date décroissante
     allVideos.sort(
       (a, b) =>
         new Date(b.realPublishDate).getTime() -
         new Date(a.realPublishDate).getTime()
     );
 
-    // ✅ SAVE TO CACHE
     cache[cacheKey] = {
       data: allVideos,
       timestamp: now,
@@ -139,7 +143,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ videos: allVideos });
   } catch (error) {
     console.error("YouTube API error:", error);
-    // ❌ Don't expose internal errors
     return NextResponse.json(
       { error: "Erreur lors du chargement des vidéos." },
       { status: 500 }
