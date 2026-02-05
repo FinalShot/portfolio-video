@@ -290,7 +290,7 @@ const element = document.getElementById(id);
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
                   duration: 0.6,
-                  delay: 0.2 + index * 0.08,
+                  delay: index * 0.08,
                   ease: "easeOut"
                 }}
                 className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border transition-all duration-300 ${
