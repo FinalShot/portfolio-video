@@ -286,7 +286,7 @@ const element = document.getElementById(id);
                 {cat}
               </button>
             ))}
-          </div>
+          </motion.div>
 
           {/* Grille Vidéo */}
           {loading ? (
@@ -353,7 +353,7 @@ const element = document.getElementById(id);
               </div>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {/* SECTION CONTACT */}
         <motion.section
@@ -367,7 +367,7 @@ const element = document.getElementById(id);
             {/* Formulaire de contact */}
             <ContactForm />
           </div>
-        </section>
+        </motion.section>
 
       </main>
 
