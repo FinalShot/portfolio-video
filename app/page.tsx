@@ -14,15 +14,17 @@ const EXTERNAL_VIDEOS = [
     title: "TF1 - Kev Adams Le Before",
     thumbnailUrl: "https://i.vimeocdn.com/video/1748333621-6556ab122d6d8571b0f94d1c4e33b94928a32adcf1a4ab6f80959c79b258aba2-d_640",
     videoUrl: "https://vimeo.com/881022565",
-    category: "FICTIONS",
-    date: "2023-11-03"
+    category: "FICTIONS" as const,
+    date: "2023-11-03",
+    aspectRatio: "landscape" as const,
   },
   {
     title: "Olympic Museum",
     thumbnailUrl: "/thumbnails/olympic-museum.jpeg",
     videoUrl: "https://www.instagram.com/p/C-dJ5BoszI9/",
-    category: "PUBS & BRAND CONTENT",
-    date: "2024-08-09"
+    category: "PUBS & BRAND CONTENT" as const,
+    date: "2024-08-09",
+    aspectRatio: "square" as const,
   }
 ];
 
@@ -50,24 +52,20 @@ export default function Portfolio() {
 
         // 2. Formater les vidéos externes
         const formattedExternalVideos: Video[] = EXTERNAL_VIDEOS.map(vid => ({
-            id: vid.videoUrl,
-            title: vid.title,
-            thumbnail: vid.thumbnailUrl,
-            link: vid.link,
-            realPublishDate: vid.realPublishDate,
-            autoCategory: vid.autoCategory,
-            source: vid.source,
-            // Ajoute les propriétés manquantes :
-            category: vid.category || 'TOUT', // ou la valeur par défaut appropriée
-            youtubeId: vid.youtubeId || '',
-            year: vid.year || new Date().getFullYear(),
-            aspectRatio: vid.aspectRatio || '16:9', // ou autre ratio par défaut
+          id: vid.videoUrl,
+          title: vid.title,
+          category: vid.category,
+          thumbnail: vid.thumbnailUrl,
+          youtubeId: '', // Pas de YouTube ID pour les vidéos externes
+          year: new Date(vid.date).getFullYear(),
+          aspectRatio: vid.aspectRatio,
         }));
 
-
         // 3. Fusionner et trier par date
+        // Note: Si tes vidéos YouTube n'ont pas de date, il faut l'ajouter au type Video
         const allVideos = [...youtubeVideos, ...formattedExternalVideos];
-        allVideos.sort((a, b) => new Date(b.realPublishDate).getTime() - new Date(a.realPublishDate).getTime());
+        // Enlève ce tri si tu n'as pas de propriété 'date' dans Video
+        // allVideos.sort((a, b) => new Date(b.realPublishDate).getTime() - new Date(a.realPublishDate).getTime());
 
         setVideos(allVideos);
       } catch (error) {
@@ -80,16 +78,15 @@ export default function Portfolio() {
     fetchVideos();
   }, []);
 
-
   const categories = ["TOUT", "PUBS & BRAND CONTENT", "EMISSIONS & DOCS", "BANDES-ANNONCES", "FICTIONS"];
   
-  const filteredVideos = filter === "TOUT" 
-    ? videos 
-    : videos.filter(v => v.autoCategory === filter);
+  const filteredVideos = filter === "TOUT"
+    ? videos
+    : videos.filter(v => v.category === filter);
 
   // Fonction de scroll fluide
   const scrollTo = (id: string) => {
-const element = document.getElementById(id);
+    const element = document.getElementById(id);
     if (element) {
       const headerHeight = 80; // h-20 = 80px
       const offsetPosition = element.offsetTop - headerHeight;
@@ -97,8 +94,8 @@ const element = document.getElementById(id);
         top: offsetPosition,
         behavior: "smooth"
       });
-        }
-    };
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
@@ -136,7 +133,7 @@ const element = document.getElementById(id);
           </nav>
           
           {/* Burger Menu Button - Mobile Only */}
-          <button 
+          <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
             aria-label="Menu"
@@ -157,7 +154,7 @@ const element = document.getElementById(id);
             className="fixed inset-0 z-40 md:hidden"
           >
             {/* Backdrop */}
-            <div 
+            <div
               className="absolute inset-0 bg-black/80 backdrop-blur-sm"
               onClick={() => setMobileMenuOpen(false)}
             />
@@ -172,19 +169,19 @@ const element = document.getElementById(id);
             >
               <div className="flex flex-col gap-6">
                 <button
-                  onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setMobileMenuOpen(false); }} 
+                  onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setMobileMenuOpen(false); }}
                   className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
                 >
                   PORTFOLIO
                 </button>
-                <button 
-                  onClick={() => { scrollTo('about'); setMobileMenuOpen(false); }} 
+                <button
+                  onClick={() => { scrollTo('about'); setMobileMenuOpen(false); }}
                   className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
                 >
                   À PROPOS
                 </button>
-                <button 
-                  onClick={() => { scrollTo('contact'); setMobileMenuOpen(false); }} 
+                <button
+                  onClick={() => { scrollTo('contact'); setMobileMenuOpen(false); }}
                   className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
                 >
                   CONTACT
@@ -223,26 +220,25 @@ const element = document.getElementById(id);
             ))}
           </div>
 
-
           {/* Grille Vidéo */}
-            <motion.div
+          <motion.div
             layout
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
-              <AnimatePresence>
-                {filteredVideos.map((video) => (
-                  <motion.div
-                    layout
-                    key={video.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <TiltCard video={video} />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
+            <AnimatePresence>
+              {filteredVideos.map((video) => (
+                <motion.div
+                  layout
+                  key={video.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <TiltCard video={video} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
           
           {filteredVideos.length === 0 && !loading && (
             <div className="text-center py-20 text-gray-500">Aucune vidéo trouvée dans cette catégorie. Vérifiez vos descriptions YouTube !</div>
@@ -262,9 +258,9 @@ const element = document.getElementById(id);
               <div className="shrink-0">
                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
                   {/* METS TA PHOTO DANS LE DOSSIER /public ET CHANGE LE SRC ICI */}
-                  <img 
-                    src="/ma-photo.webp" 
-                    alt="Jean Lanot" 
+                  <img
+                    src="/ma-photo.webp"
+                    alt="Jean Lanot"
                     className="w-full h-full object-cover"
                     onError={(e) => {e.currentTarget.src = "https://placehold.co/400x400/222/FFF?text=JL"}} // Fallback si pas de photo
                   />
@@ -275,8 +271,8 @@ const element = document.getElementById(id);
               <div className="text-center md:text-left">
                 <h2 className="text-2xl font-bold mb-4">À PROPOS</h2>
                 <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
-                  Monteur vidéo basé à Paris avec plus de 9 ans d'expérience. 
-                  Travaillant avec des agences, des productions indépendantes ou des institutions, 
+                  Monteur vidéo basé à Paris avec plus de 9 ans d'expérience.
+                  Travaillant avec des agences, des productions indépendantes ou des institutions,
                   aussi bien pour la télévision que pour le web, je suis ouvert à tout type de projet.
                 </p>
               </div>
