@@ -100,6 +100,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           }}
         />
 
+        
         {/* Content */}
         <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-5">
           {/* Play button */}
@@ -116,6 +117,16 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
               <Play className="h-6 w-6 md:h-7 md:w-7 fill-background text-background ml-1" />
             </div>
           </motion.div>
+          
+          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors duration-300">
+            {/* Ajoute un play icon au centre au hover */}
+            <motion.div
+              animate={{ opacity: isHover ? 1 : 0 }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <Play className="w-16 h-16 text-white drop-shadow-lg" />
+            </motion.div>
+          </div>
 
           {/* Video info */}
           <motion.div
