@@ -90,20 +90,26 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
         {/* Gradient dégradé du bas (titre) */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
 
-        {/* Glare effect qui suit la souris */}
+        {/* Glare effect qui suit la souris - VERSION CORRIGÉE */}
         <motion.div
-          className="pointer-events-none absolute inset-0"
+          className="pointer-events-none absolute inset-0 rounded-xl overflow-hidden"
           style={{
-            background: `radial-gradient(circle 400px, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 30%, transparent 70%)`,
-            backgroundSize: '400px 400px',
-            backgroundRepeat: 'no-repeat',
-            backgroundPositionX: glareX,
-            backgroundPositionY: glareY,
             opacity: isHovered ? 1 : 0,
-            mixBlendMode: 'overlay', // ← Effet de lumière plus naturel
             transition: 'opacity 0.3s ease',
           }}
-        />
+        >
+          <motion.div
+            className="absolute w-[800px] h-[800px]"
+            style={{
+              background: `radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.08) 35%, transparent 65%)`,
+              left: glareX,
+              top: glareY,
+              x: '-50%',
+              y: '-50%',
+              mixBlendMode: 'soft-light',
+              pointerEvents: 'none',
+            }}
+          />
 
         {/* Content */}
         <div className="absolute inset-0 flex flex-col justify-end p-5">
