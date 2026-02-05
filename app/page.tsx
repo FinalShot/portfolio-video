@@ -37,26 +37,6 @@ interface Video {
   description?: string;
 }
 
-// --- COMPOSANT: TILT CARD (Ton effet "Monstre") ---
-function TiltCard({ video }: { video: Video }) {
-  const [isHover, setHover] = useState(false);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  
-  const mouseX = useSpring(x, { stiffness: 300, damping: 30 });
-  const mouseY = useSpring(y, { stiffness: 300, damping: 30 });
-
-  const rotateX = useTransform(mouseY, [-200, 200], [8, -8]);
-  const rotateY = useTransform(mouseX, [-200, 200], [-8, 8]);
-
-  function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    x.set(event.clientX - rect.left - width / 2);
-    y.set(event.clientY - rect.top - height / 2);
-  }
-
 // --- PAGE PRINCIPALE ---
 export default function Portfolio() {
   const [videos, setVideos] = useState<Video[]>([]);
