@@ -282,18 +282,15 @@ const element = document.getElementById(id);
         <section id="portfolio" className="mb-32">
           {/* Filtres */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 + index * 0.08 }}
             className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start"
           >
             {categories.map((cat, index) => (
-              <button
+              <motion.button
                 key={cat}
                 onClick={() => setFilter(cat)}
-            {/* initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 + index * 0.08 }} */}
+                transition={{ duration: 0.6, delay: 0.2 + index * 0.08 }}
                 className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border transition-all duration-300 ${
                   filter === cat
                     ? "bg-white/90 text-black border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
@@ -301,7 +298,7 @@ const element = document.getElementById(id);
                 }`}
               >
                 {cat}
-              </button>
+              </motion.button>
             ))}
           </motion.div>
 
