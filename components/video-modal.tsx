@@ -33,6 +33,81 @@ export function VideoModal({ video, isOpen, onClose }: VideoModalProps) {
     };
   }, [isOpen, handleKeyDown]);
 
+  if (!video) return null;
+
+  // Déterminer le type de vidéo
+  const isYoutube = !!video.youtubeId;
+  const isVimeo = video.thumbnail?.includes("vimeocdn");
+  const isInstagram = video.thumbnail?.includes("instagram");
+
+  let embedContent: React.ReactNode = null;
+
+  if (isYoutube) {
+    embedContent = (
+      <iframe
+        src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=1&rel=0`}
+        title={video.title}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        className="absolute inset-0 h-full w-full"
+      />
+    );
+  } else if (isVimeo) {
+    // Extraire l'ID Vimeo de l'URL du thumbnail
+    const vimeoMatch = video.thumbnail.match(/video\/(\d+)/);
+    const vimeoId = vimeoMatch?.[1];
+    
+    if (vimeoId) {
+      embedContent = (
+        <iframe
+          src={`https://player.vimeo.com/video/${vimeoId}?autoplay=1`}
+          title={video.title}
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 h-full w-full"
+        />
+      );
+    } else {
+      embedContent = (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+          <div className="text-center">
+            <p className="text-white mb-4">Vidéo Vimeo</p>
+            <a
+              href={video.videoUrl || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-200 transition-colors"
+            >
+              Ouvrir sur Vimeo →
+            </a>
+          </div>
+        </div>
+      );
+    }
+  } else if (isInstagram) {
+    embedContent = (
+      <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+        <div className="text-center">
+          <p className="text-white mb-4">Contenu Instagram</p>
+          <a
+            href={video.videoUrl || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-200 transition-colors"
+          >
+            Ouvrir sur Instagram →
+          </a>
+        </div>
+      </div>
+    );
+  } else {
+    embedContent = (
+      <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+        <p className="text-white">Vidéo indisponible</p>
+      </div>
+    );
+  }
+
   return (
     <AnimatePresence>
       {isOpen && video && (
@@ -49,7 +124,7 @@ export function VideoModal({ video, isOpen, onClose }: VideoModalProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-background/95 backdrop-blur-md"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
           />
 
           {/* Modal Content */}
@@ -64,43 +139,47 @@ export function VideoModal({ video, isOpen, onClose }: VideoModalProps) {
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute -top-12 right-0 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className="absolute -top-12 right-0 flex items-center gap-2 text-sm text-white/60 transition-colors hover:text-white"
             >
-              <span>Close</span>
-              <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs">
+              <span>Fermer</span>
+              <kbd className="rounded border border-white/20 bg-white/5 px-1.5 py-0.5 text-xs">
                 ESC
               </kbd>
             </button>
 
             {/* Video Container */}
-            <div className="overflow-hidden rounded-xl border border-border bg-card shadow-2xl">
-              <div className="relative aspect-video w-full">
-                <iframe
-                  src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=1&rel=0`}
-                  title={video.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="absolute inset-0 h-full w-full"
-                />
+            <div className="overflow-hidden rounded-xl border border-white/10 bg-black shadow-2xl">
+              <div className="relative aspect-video w-full bg-black">
+                {embedContent}
               </div>
 
               {/* Video Info */}
-              <div className="border-t border-border p-4 md:p-6">
-                <h2 className="text-lg font-semibold text-foreground md:text-xl">
+              <div className="border-t border-white/10 p-4 md:p-6">
+                <h2 className="text-lg font-semibold text-white md:text-xl">
                   {video.title}
                 </h2>
                 {video.description && (
-                  <p className="mt-2 text-sm text-muted-foreground">
+                  <p className="mt-2 text-sm text-gray-400">
                     {video.description}
                   </p>
                 )}
-                <div className="mt-4 flex items-center gap-4">
-                  <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground capitalize">
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/60 capitalize">
                     {video.category}
                   </span>
-                  <span className="text-xs text-muted-foreground">
-                    {video.duration}
+                  {video.client && (
+                    <span className="text-xs text-white/40">
+                      {video.client}
+                    </span>
+                  )}
+                  <span className="text-xs text-white/40">
+                    {video.year}
                   </span>
+                  {video.duration && (
+                    <span className="text-xs text-white/40">
+                      {video.duration}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

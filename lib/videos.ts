@@ -6,6 +6,7 @@ export interface Video {
   category: Exclude<VideoCategory, "all">;
   thumbnail: string;
   youtubeId: string;
+  videoUrl?: string;
   client?: string;
   year: number;
   aspectRatio: "landscape" | "portrait" | "square";
