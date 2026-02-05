@@ -1,8 +1,7 @@
 "use client";
-
-import React from "react"
-
+import React from "react";
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import type { Video } from "@/lib/videos";
 import { Play } from "lucide-react";
@@ -15,10 +14,10 @@ interface TiltCardProps {
 export function TiltCard({ video, onClick }: TiltCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-
+  const [imageLoaded, setImageLoaded] = useState(false);
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
-
+  
   const rotateX = useSpring(useTransform(y, [0, 1], [15, -15]), {
     stiffness: 300,
     damping: 30,
@@ -27,7 +26,6 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
     stiffness: 300,
     damping: 30,
   });
-
   const glareX = useTransform(x, [0, 1], ["-50%", "150%"]);
   const glareY = useTransform(y, [0, 1], ["-50%", "150%"]);
 
@@ -77,11 +75,21 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           transformStyle: "preserve-3d",
         }}
       >
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${video.thumbnail})` }}
-        />
+        {/* 🎯 OPTIMIZED IMAGE - Remplace l'ancien div backgroundImage */}
+        <div className="absolute inset-0">
+          <Image
+            src={video.thumbnail}
+            alt={video.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority={false} // lazy load par défaut
+            quality={80} // compression JPEG
+            placeholder="blur" // blurred placeholder pendant le chargement
+            blurDataURL={`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E`}
+            onLoadingComplete={() => setImageLoaded(true)}
+          />
+        </div>
 
         {/* Dark overlay */}
         <motion.div
@@ -100,7 +108,6 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           }}
         />
 
-        
         {/* Content */}
         <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-5">
           {/* Play button */}
@@ -117,14 +124,13 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
               <Play className="h-6 w-6 md:h-7 md:w-7 fill-background text-background ml-1" />
             </div>
           </motion.div>
-          
 
           {/* Video info */}
           <motion.div
             initial={{ y: 10, opacity: 0 }}
             animate={{
               y: isHovered ? 20 : 0,
-              opacity: isHovered ? 0 : 1
+              opacity: isHovered ? 0 : 1,
             }}
             transition={{ duration: 0.3 }}
             style={{ transform: "translateZ(30px)" }}
