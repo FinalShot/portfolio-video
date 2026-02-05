@@ -25,6 +25,7 @@ export const videos: Video[] = [
     client: "TravelVlog",
     year: 2025,
     aspectRatio: "landscape",
+    publishedAt: Date,
   },
   {
     id: "2",
@@ -35,6 +36,7 @@ export const videos: Video[] = [
     client: "Indie Film Co",
     year: 2024,
     aspectRatio: "portrait",
+    publishedAt: Date,
   },
   {
     id: "3",
@@ -45,6 +47,7 @@ export const videos: Video[] = [
     client: "TechCorp",
     year: 2025,
     aspectRatio: "landscape",
+    publishedAt: Date,
   },
   {
     id: "4",
@@ -55,6 +58,7 @@ export const videos: Video[] = [
     client: "Wave Studios",
     year: 2024,
     aspectRatio: "square",
+    publishedAt: Date,
   },
   {
     id: "5",
@@ -65,6 +69,7 @@ export const videos: Video[] = [
     client: "Luxury Brand",
     year: 2025,
     aspectRatio: "portrait",
+    publishedAt: Date,
   },
   {
     id: "6",
@@ -75,6 +80,7 @@ export const videos: Video[] = [
     client: "ProGamer",
     year: 2024,
     aspectRatio: "landscape",
+    publishedAt: Date,
   },
   {
     id: "7",
@@ -85,6 +91,7 @@ export const videos: Video[] = [
     client: "Retail Giant",
     year: 2025,
     aspectRatio: "square",
+    publishedAt: Date,
   },
   {
     id: "8",
@@ -95,6 +102,7 @@ export const videos: Video[] = [
     client: "Documentary Films",
     year: 2024,
     aspectRatio: "landscape",
+    publishedAt: Date,
   },
   {
     id: "9",
@@ -105,6 +113,7 @@ export const videos: Video[] = [
     client: "The Talk Show",
     year: 2025,
     aspectRatio: "portrait",
+      publishedAt: Date,
   },
   {
     id: "10",
@@ -115,6 +124,7 @@ export const videos: Video[] = [
     client: "Fashion House",
     year: 2024,
     aspectRatio: "landscape",
+      publishedAt: Date,
   },
   {
     id: "11",
@@ -125,6 +135,7 @@ export const videos: Video[] = [
     client: "Record Label",
     year: 2025,
     aspectRatio: "square",
+      publishedAt: Date,
   },
   {
     id: "12",
@@ -135,6 +146,7 @@ export const videos: Video[] = [
     client: "Wanderlust",
     year: 2024,
     aspectRatio: "landscape",
+      publishedAt: Date,
   },
 ];
 
