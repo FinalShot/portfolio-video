@@ -80,28 +80,28 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           />
         </div>
 
-        {/* Overlay de base */}
+        {/* Overlay de base - éclaircissement doux */}
         <motion.div
-          className="absolute inset-0 bg-black/40"
-          animate={{ opacity: isHovered ? 0.1 : 0.4 }}
-          transition={{ duration: 0.3 }}
+          className="absolute inset-0 bg-black/50"
+          animate={{ opacity: isHovered ? 0.3 : 0.5 }}
+          transition={{ duration: 0.4 }}
         />
 
         {/* Gradient dégradé du bas (titre) */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
 
-        {/* Glare effect qui suit la souris - VERSION CORRIGÉE */}
+        {/* Glare effect qui suit la souris - doux */}
         <motion.div
           className="pointer-events-none absolute inset-0 rounded-xl overflow-hidden"
-          style={{
-            opacity: isHovered ? 1 : 0,
-            transition: 'opacity 0.3s ease',
+          animate={{
+            opacity: isHovered ? 0.8 : 0, // ← Réduit à 0.8 max
           }}
+          transition={{ duration: 0.5, ease: "easeInOut" }} // ← Plus lent
         >
           <motion.div
-            className="absolute w-[800px] h-[800px]"
+            className="absolute w-[500px] h-[500px]"
             style={{
-              background: `radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.08) 35%, transparent 65%)`,
+              background: `radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 50%, transparent 75%)`,
               left: glareX,
               top: glareY,
               x: '-50%',
@@ -111,6 +111,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
             }}
           />
         </motion.div>
+
 
         {/* Content */}
         <div className="absolute inset-0 flex flex-col justify-end p-5">
