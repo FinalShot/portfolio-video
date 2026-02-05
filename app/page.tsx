@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import { Mail, Phone, Play, ArrowRight, Menu, X } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
+import { TiltCard } from "@/components/tilt-card";
 
 // --- CONFIGURATION ---
 // Vidéos externes (Vimeo, Instagram, etc.)
@@ -55,64 +56,6 @@ function TiltCard({ video }: { video: Video }) {
     x.set(event.clientX - rect.left - width / 2);
     y.set(event.clientY - rect.top - height / 2);
   }
-
-  function handleMouseLeave() {
-    setHover(false);
-    x.set(0); y.set(0);
-  }
-
-  return (
-    <a 
-      href={video.link} // ✅ On utilise le lien générique (Youtube ou autre)
-      target="_blank" 
-      rel="noopener noreferrer"
-      className="block h-full"
-    >
-      <motion.div
-        onMouseMove={handleMouseMove}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={handleMouseLeave}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0, scale: isHover ? 1.05 : 1 }}
-        transition={{ duration: 0.3 }}
-        style={{ perspective: 1000 }}
-        className="relative w-full h-full z-10 hover:z-20"
-      >
-        <motion.div
-          style={{ rotateX: isHover ? rotateX : 0, rotateY: isHover ? rotateY : 0, transformStyle: "preserve-3d" }}
-          className="relative w-full aspect-video rounded-xl overflow-hidden bg-gray-900 shadow-xl border border-white/10"
-        >
-          {/* Miniature */}
-          <img 
-            src={video.thumbnail || "/placeholder.svg"} 
-            alt={video.title} 
-            className="w-full h-full object-cover"
-          />
-          
-          {/* Overlay sombre au repos */}
-          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors duration-300" />
-
-          {/* Titre et Info */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 to-transparent">
-            <h3 className="text-white font-bold text-sm md:text-base line-clamp-2">{video.title}</h3>
-            <p className="text-gray-300 text-xs mt-1 uppercase tracking-wider opacity-80">{video.autoCategory}</p>
-          </div>
-
-          {/* Glare Effect (Reflet) */}
-          <motion.div
-            animate={{ opacity: isHover ? 0.8 : 0 }}
-            style={{
-              position: "absolute", inset: -100,
-              background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%)",
-              mixBlendMode: "overlay", pointerEvents: "none",
-              translateX: x, translateY: y, scale: 1.5
-            }}
-          />
-        </motion.div>
-      </motion.div>
-    </a>
-  );
-}
 
 // --- PAGE PRINCIPALE ---
 export default function Portfolio() {
