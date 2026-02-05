@@ -198,12 +198,12 @@ const element = document.getElementById(id);
             <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.12 }}
+            transition={{ duration: 0.6, delay: 0.08 }}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">PORTFOLIO</motion.button>
             <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.14 }}
+            transition={{ duration: 0.6, delay: 0.12 }}
             onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">À PROPOS</motion.button>
             <motion.button
             initial={{ opacity: 0, y: 20 }}
@@ -287,9 +287,9 @@ const element = document.getElementById(id);
               <motion.button
                 key={cat}
                 onClick={() => setFilter(cat)}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 + index * 0.08 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 + index * 0.08 }}
                 className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border transition-all duration-300 ${
                   filter === cat
                     ? "bg-white/90 text-black border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
