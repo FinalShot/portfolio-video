@@ -89,9 +89,11 @@ export function VideoModal({ video, isOpen, onClose }: VideoModalProps) {
                 <h2 className="text-lg font-semibold text-foreground md:text-xl">
                   {video.title}
                 </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {video.description}
-                </p>
+                {video.description && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {video.description}
+                  </p>
+                )}
                 <div className="mt-4 flex items-center gap-4">
                   <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground capitalize">
                     {video.category}
