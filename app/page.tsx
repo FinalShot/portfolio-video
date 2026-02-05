@@ -275,7 +275,6 @@ export default function Portfolio() {
               <AnimatePresence>
                 {filteredVideos.map((video) => (
                   <motion.div
-                    layout
                     key={video.id}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
