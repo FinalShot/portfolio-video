@@ -110,6 +110,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
               pointerEvents: 'none',
             }}
           />
+        </motion.div>
 
         {/* Content */}
         <div className="absolute inset-0 flex flex-col justify-end p-5">
