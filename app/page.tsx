@@ -33,7 +33,7 @@ interface Video {
   realPublishDate: string;
   autoCategory: string;
   source: string;
-  description: string;
+  description?: string;
 }
 
 // --- COMPOSANT: TILT CARD (Ton effet "Monstre") ---
