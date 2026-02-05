@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { videos, type VideoCategory, type Video } from "@/lib/videos";
+import type { Video } from "@/lib/videos";
 import { FilterBar } from "./filter-bar";
 import { VideoGrid } from "./video-grid";
 import { VideoModal } from "./video-modal";
