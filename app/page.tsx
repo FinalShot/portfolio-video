@@ -47,7 +47,7 @@ function TiltCard({ video }: { video: Video }) {
   const rotateX = useTransform(mouseY, [-200, 200], [8, -8]);
   const rotateY = useTransform(mouseX, [-200, 200], [-8, 8]);
 
-  function handleMouseMove(event) {
+  function handleMouseMove(even: React.MouseEvent<HTMLDivElement>t) {
     const rect = event.currentTarget.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
