@@ -9,6 +9,7 @@ export interface Video {
   client?: string;
   year: number;
   aspectRatio: "landscape" | "portrait" | "square";
+  description?: string;
 }
 
 export const videos: Video[] = [
