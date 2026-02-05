@@ -115,20 +115,20 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
 
         {/* Content */}
         <div className="absolute inset-0 flex flex-col justify-end p-5">
-          {/* Play button */}
-          <motion.div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{
-              opacity: isHovered ? 1 : 0,
-              scale: isHovered ? 1 : 0.8,
-            }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-xl">
-              <Youtube className="h-7 w-7 fill-black text-black ml-1" />
-            </div>
-          </motion.div>
+        {/* Play button - STYLE YOUTUBE AUTHENTIQUE */}
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{
+            opacity: isHovered ? 1 : 0,
+            scale: isHovered ? 1 : 0.8,
+          }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-600 backdrop-blur-sm shadow-xl">
+            <Play className="h-7 w-7 fill-white text-white ml-1" />
+          </div>
+        </motion.div>
 
           {/* Video info */}
           <motion.div
