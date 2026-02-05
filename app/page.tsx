@@ -35,6 +35,9 @@ export default function Portfolio() {
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   }, []);
@@ -104,6 +107,15 @@ export default function Portfolio() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
+    
+    <VideoModal
+          video={selectedVideo}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedVideo(null);
+          }}
+        />
       
       {/* HEADER FIXE */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
@@ -239,7 +251,14 @@ export default function Portfolio() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <TiltCard video={video} />
+                  <TiltCard
+                  video={video}
+                  onClick={() => {
+                          console.log("Click détecté sur:", video.title); // ← AJOUTE CE LOG
+                          setSelectedVideo(video);
+                          setIsModalOpen(true);
+                        }}
+                  />
                 </motion.div>
               ))}
             </AnimatePresence>
