@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     siteName: 'Jean Lanot Portfolio',
     images: [
       {
-        url: '/og-image.jpg', // On va créer cette image
+        url: '${siteUrl}/og-image.jpg', // On va créer cette image
         width: 1200,
         height: 630,
         alt: 'Jean Lanot - Monteur Vidéo',
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Jean Lanot | Monteur Vidéo Paris',
     description: 'Portfolio de montage vidéo professionnel',
-    images: ['/og-image.jpg'],
+    images: ['${siteUrl}/og-image.jpg'],
     creator: '@jeanlanot', // ← Change si tu as un Twitter
   },
   
