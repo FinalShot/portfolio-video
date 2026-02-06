@@ -63,8 +63,8 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
         rotateX,
         rotateY,
         transformStyle: "preserve-3d",
-        backfaceVisibility: "hidden",
-        WebkitBackfaceVisibility: "hidden",
+        transform: "translateZ(0)",
+        willChange: "transform",
       }}
     >
 
