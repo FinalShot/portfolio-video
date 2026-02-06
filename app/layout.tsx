@@ -2,12 +2,22 @@ import React from "react"
 import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
-import { Geist_Mono, Ubuntu as V0_Font_Ubuntu, Geist_Mono as V0_Font_Geist_Mono } from 'next/font/google'
 import { StructuredData } from '@/components/structured-data'
+import { Inter } from 'next/font/google'
+import { Ubuntu } from 'next/font/google'
 
-// Initialize fonts
-const _ubuntu = V0_Font_Ubuntu({ subsets: ['latin'], weight: ["300","400","500","700"] })
-const _geistMono = V0_Font_Geist_Mono({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700","800","900"] })
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+})
+
+const ubuntu = Ubuntu({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'], // ⬅️ IMPORTANT : spécifier les poids
+  display: 'swap',
+  variable: '--font-ubuntu',
+})
 
 const siteUrl = "https://jeanlanot.com";
 
@@ -95,7 +105,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fr"> {/* ← Changé de "en" à "fr" */}
+    <html lang="fr" className={`${inter.className} ${ubuntu.variable}`}> {/* ← Changé de "en" à "fr" */}
       <body className={`font-sans antialiased`}>
         <StructuredData />
         {children}
