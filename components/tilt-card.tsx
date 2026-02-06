@@ -2,7 +2,7 @@
 import React from "react";
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from "framer-motion";
 import type { Video } from "@/lib/videos";
 import { Play, Youtube } from "lucide-react";
 
@@ -28,6 +28,8 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
   });
   const glareX = useTransform(x, [0, 1], ["-50%", "150%"]);
   const glareY = useTransform(y, [0, 1], ["-50%", "150%"]);
+  
+  const background = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 20%, transparent 50%)`;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -101,30 +103,18 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           transition={{ duration: 0.3 }}
         />
 
-        {/* Glare effect qui suit la souris - doux */}
+        {/* Glare effect qui suit la souris */}
         <motion.div
           className="pointer-events-none absolute inset-0 rounded-xl overflow-hidden"
-          animate={{
-            opacity: isHovered ? 0.8 : 0, // ← Réduit à 0.8 max
+          style={{
+            background,
+            mixBlendMode: 'soft-light',
           }}
-          transition={{ duration: 0.5, ease: "easeInOut" }} // ← Plus lent
-        >
-            <motion.div
-              className="absolute w-[500px] h-[500px]"
-              style={{
-                background: `radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 50%, transparent 75%)`,
-                left: 0,
-                top: 0,
-                translateX: glareX,
-                translateY: glareY,
-                x: '-50%',
-                y: '-50%',
-                mixBlendMode: 'soft-light',
-                pointerEvents: 'none',
-              }}
-            />
-        </motion.div>
-
+          animate={{
+            opacity: isHovered ? 1 : 0,
+          }}
+          transition={{ duration: 0.5 }}
+        />
 
         {/* Content */}
         <div className="absolute inset-0 flex flex-col justify-end p-5">
