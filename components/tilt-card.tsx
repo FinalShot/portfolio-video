@@ -65,18 +65,22 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           transformStyle: "preserve-3d",
         }}
       >
-        {/* IMAGE */}
-        <div className="absolute inset-0">
-          <Image
-            src={video.thumbnail}
-            alt={video.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            quality={85}
-            onLoadingComplete={() => setImageLoaded(true)}
-          />
-        </div>
+      {/* IMAGE */}
+      <div className="absolute inset-0">
+        <Image
+          src={video.thumbnail}
+          alt={video.title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          quality={85}
+          placeholder="blur"
+          blurDataURL={`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E`}
+          unoptimized={true}
+          onLoadingComplete={() => setImageLoaded(true)}
+        />
+      </div>
+
 
         {/* Overlay de base - éclaircissement doux */}
         <motion.div
@@ -86,7 +90,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
         />
 
         {/* Gradient dégradé du bas (titre) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
         {/* Glare effect qui suit la souris - doux */}
         <motion.div
