@@ -19,7 +19,7 @@ const ubuntu = Ubuntu({
   variable: '--font-ubuntu',
 })
 
-const siteUrl = "https://jeanlanot.com";
+const siteUrl = "https://portfolio-video-psi.vercel.app/";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
