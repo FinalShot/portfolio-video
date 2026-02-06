@@ -109,18 +109,20 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           }}
           transition={{ duration: 0.5, ease: "easeInOut" }} // ← Plus lent
         >
-          <motion.div
-            className="absolute w-[500px] h-[500px]"
-            style={{
-              background: `radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 50%, transparent 75%)`,
-              left: glareX,
-              top: glareY,
-              x: '-50%',
-              y: '-50%',
-              mixBlendMode: 'soft-light',
-              pointerEvents: 'none',
-            }}
-          />
+            <motion.div
+              className="absolute w-[500px] h-[500px]"
+              style={{
+                background: `radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 50%, transparent 75%)`,
+                left: 0,
+                top: 0,
+                translateX: glareX,
+                translateY: glareY,
+                x: '-50%',
+                y: '-50%',
+                mixBlendMode: 'soft-light',
+                pointerEvents: 'none',
+              }}
+            />
         </motion.div>
 
 

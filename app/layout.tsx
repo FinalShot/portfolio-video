@@ -105,7 +105,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fr" className={`${inter.className} ${ubuntu.variable}`}> {/* ← Changé de "en" à "fr" */}
+    <html lang="fr" className={`${inter.className} ${ubuntu.variable}`}>
       <body className={`font-sans antialiased`}>
         <StructuredData />
         {children}
