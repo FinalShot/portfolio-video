@@ -18,11 +18,11 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
   
-  const rotateX = useSpring(useTransform(y, [0, 1], [15, -15]), {
+  const rotateX = useSpring(useTransform(y, [0, 1], [9, -9]), {
     stiffness: 300,
     damping: 30,
   });
-  const rotateY = useSpring(useTransform(x, [0, 1], [-15, 15]), {
+  const rotateY = useSpring(useTransform(x, [0, 1], [-9, 9]), {
     stiffness: 300,
     damping: 30,
   });
@@ -85,12 +85,12 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
       </div>
 
 
-        {/* Overlay de base - éclaircissement doux */}
+        {/* Overlay de base - éclaircissement doux
         <motion.div
           className="absolute inset-0 bg-black/50"
           animate={{ opacity: isHovered ? 0.3 : 0.5 }}
           transition={{ duration: 0.4 }}
-        />
+        /> */}
 
         {/* Gradient dégradé du bas (titre) */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
