@@ -93,11 +93,17 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
         /> */}
 
         {/* Gradient dégradé du bas (titre) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
+          animate={{
+            opacity: isHovered ? 0 : 1,
+          }}
+          transition={{ duration: 0.3 }}
+        />
 
         {/* Glare effect qui suit la souris - doux */}
         <motion.div
-          className="pointer-events-none absolute inset-0 rounded-lg overflow-hidden"
+          className="pointer-events-none absolute inset-0 rounded-xl overflow-hidden"
           animate={{
             opacity: isHovered ? 0.8 : 0, // ← Réduit à 0.8 max
           }}
