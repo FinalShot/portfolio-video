@@ -18,11 +18,11 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
   
-  const rotateX = useSpring(useTransform(y, [0, 1], [9, -9]), {
+  const rotateX = useSpring(useTransform(y, [0, 1], [6, -6]), {
     stiffness: 300,
     damping: 30,
   });
-  const rotateY = useSpring(useTransform(x, [0, 1], [-9, 9]), {
+  const rotateY = useSpring(useTransform(x, [0, 1], [-6, 6]), {
     stiffness: 300,
     damping: 30,
   });
@@ -93,11 +93,11 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
         /> */}
 
         {/* Gradient dégradé du bas (titre) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
         {/* Glare effect qui suit la souris - doux */}
         <motion.div
-          className="pointer-events-none absolute inset-0 rounded-xl overflow-hidden"
+          className="pointer-events-none absolute inset-0 rounded-lg overflow-hidden"
           animate={{
             opacity: isHovered ? 0.8 : 0, // ← Réduit à 0.8 max
           }}
