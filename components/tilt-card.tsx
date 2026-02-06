@@ -57,14 +57,17 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
     >
-      <motion.div
-        className="relative h-full w-full rounded-xl overflow-hidden border border-white/5"
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-        }}
-      >
+    <motion.div
+      className="relative h-full w-full rounded-xl overflow-hidden border border-white/5"
+      style={{
+        rotateX,
+        rotateY,
+        transformStyle: "preserve-3d",
+        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility: "hidden",
+      }}
+    >
+
       {/* IMAGE */}
       <div className="absolute inset-0">
         <Image
@@ -84,13 +87,13 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
 
         {/* Overlay de base - éclaircissement doux */}
         <motion.div
-          className="absolute inset-0 bg-black/50 will-change-transform"
+          className="absolute inset-0 bg-black/50"
           animate={{ opacity: isHovered ? 0.3 : 0.5 }}
           transition={{ duration: 0.4 }}
         />
 
         {/* Gradient dégradé du bas (titre) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none will-change-transform" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
         {/* Glare effect qui suit la souris - doux */}
         <motion.div
