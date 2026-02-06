@@ -147,11 +147,11 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
             <h3 className="mt-1 text-lg md:text-xl font-bold text-white line-clamp-2">
               {video.title}
             </h3>
-            {(video.client || video.year) && (
+            /*{(video.client || video.year) && (
               <p className="mt-1 text-xs font-medium text-white/40 uppercase tracking-wider">
                 {[video.client, video.year].filter(Boolean).join(" · ")}
               </p>
-            )}
+            )} */
           </motion.div>
         </div>
 

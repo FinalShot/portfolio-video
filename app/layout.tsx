@@ -3,16 +3,68 @@ import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { Geist_Mono, Ubuntu as V0_Font_Ubuntu, Geist_Mono as V0_Font_Geist_Mono } from 'next/font/google'
-
+import { StructuredData } from '@/components/structured-data'
 
 // Initialize fonts
 const _ubuntu = V0_Font_Ubuntu({ subsets: ['latin'], weight: ["300","400","500","700"] })
 const _geistMono = V0_Font_Geist_Mono({ subsets: ['latin'], weight: ["100","200","300","400","500","600","700","800","900"] })
 
+const siteUrl = "https://jeanlanot.com";
+
 export const metadata: Metadata = {
-  title: 'Jean Lanot | Monteur Vidéo',
-  description: 'Monteur vidéo basé à Paris avec plus de 9 ans d\'expérience. Travaillant avec des agences, des productions indépendantes ou des institutions.',
-  generator: 'v0.app',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'Jean Lanot | Monteur Vidéo Paris',
+    template: '%s | Jean Lanot'
+  },
+  description: 'Monteur vidéo professionnel basé à Paris avec plus de 9 ans d\'expérience. Spécialisé dans les pubs, documentaires, bandes-annonces et contenus broadcast pour TF1, agences et productions.',
+  keywords: ['monteur vidéo', 'éditeur vidéo', 'montage vidéo Paris', 'post-production', 'Jean Lanot', 'vidéo professionnelle', 'TF1', 'publicité', 'documentaire'],
+  authors: [{ name: 'Jean Lanot' }],
+  creator: 'Jean Lanot',
+  publisher: 'Jean Lanot',
+  generator: 'Next.js',
+  
+  // Open Graph (Facebook, LinkedIn, WhatsApp)
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    url: siteUrl,
+    title: 'Jean Lanot | Monteur Vidéo Paris',
+    description: 'Portfolio de montage vidéo - Pubs, documentaires, fictions. Plus de 9 ans d\'expérience avec TF1, agences et productions.',
+    siteName: 'Jean Lanot Portfolio',
+    images: [
+      {
+        url: '/og-image.jpg', // On va créer cette image
+        width: 1200,
+        height: 630,
+        alt: 'Jean Lanot - Monteur Vidéo',
+      },
+    ],
+  },
+  
+  // Twitter Card
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Jean Lanot | Monteur Vidéo Paris',
+    description: 'Portfolio de montage vidéo professionnel',
+    images: ['/og-image.jpg'],
+    creator: '@jeanlanot', // ← Change si tu as un Twitter
+  },
+  
+  // Robots
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  
+  // Icons
   icons: {
     icon: [
       {
@@ -30,6 +82,11 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-icon.png',
   },
+  
+  // Verification (Google Search Console)
+  // verification: {
+  //   google: 'ton-code-google-verification',
+  // },
 }
 
 export default function RootLayout({
@@ -38,8 +95,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="fr"> {/* ← Changé de "en" à "fr" */}
       <body className={`font-sans antialiased`}>
+        <StructuredData />
         {children}
         <Analytics />
       </body>
