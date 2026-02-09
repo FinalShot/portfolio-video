@@ -6,6 +6,7 @@ import { Mail, Phone, Play, ArrowRight, Menu, X } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { TiltCard } from "@/components/tilt-card";
 import type { Video } from "@/lib/videos";
+import Image from 'next/image';
 
 // --- CONFIGURATION ---
 // Vidéos externes (Vimeo, Instagram, etc.)
