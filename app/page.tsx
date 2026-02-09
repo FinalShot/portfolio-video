@@ -345,8 +345,11 @@ export default function Portfolio() {
                   <h2 className="text-2xl font-bold mb-4">À PROPOS</h2>
                   <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
                     Monteur vidéo basé à Paris avec plus de 9 ans d'expérience.
-                    Travaillant avec des agences, des productions indépendantes ou des institutions,
-                    aussi bien pour la télévision que pour le web, je suis ouvert à tout type de projet.
+                    <br />
+                    Je collabore avec des agences, des productions indépendantes et institutions,
+                    aussi bien pour la télévision que pour le web.
+                    <br />
+                    Du brand content rythmé au documentaire d'investigation, j'adapte ma narration aux codes de chaque format.
                   </p>
                 </div>
               </div>
@@ -378,9 +381,12 @@ export default function Portfolio() {
                 <div className="text-center md:text-left">
                   <h2 className="text-2xl font-bold mb-4">À PROPOS</h2>
                   <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
-                    Monteur vidéo basé à Paris avec plus de 9 ans d'expérience.
-                    Travaillant avec des agences, des productions indépendantes ou des institutions,
-                    aussi bien pour la télévision que pour le web, je suis ouvert à tout type de projet.
+                  Monteur vidéo basé à Paris avec plus de 9 ans d'expérience.
+                  <br />
+                  Je collabore avec des agences, des productions indépendantes et institutions,
+                  aussi bien pour la télévision que pour le web.
+                  <br />
+                  Du brand content rythmé au documentaire d'investigation, j'adapte ma narration aux codes de chaque format.
                   </p>
                 </div>
               </div>
