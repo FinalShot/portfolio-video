@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     locale: 'fr_FR',
     url: siteUrl,
     title: 'Jean Lanot | Monteur vidéo',
-    description: 'Portfolio de montage vidéo - Pubs, documentaires, fictions. Plus de 9 ans d\'expérience avec chaînes de télévision, agences et productions.',
+    description: 'Portfolio de montage vidéo - Pubs, documentaires, fictions',
     siteName: 'Jean Lanot Portfolio',
     images: [
       {
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Jean Lanot | Monteur vidéo',
-    description: 'Portfolio de montage vidéo professionnel',
+    description: 'Portfolio de montage vidéo - Pubs, documentaires, fictions',
     images: ['/og-image.jpg'],
     creator: '@jeanlanot', // ← Change si tu as un Twitter
   },
