@@ -38,6 +38,21 @@
   --sidebar-ring: oklch(0.65 0.15 180);
 }
 
+/* Optimisations Safari pour les animations 3D */
+@supports (-webkit-backdrop-filter: blur(1px)) {
+  [class*="motion"] {
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000px;
+  }
+}
+
+/* Force GPU rendering pour les cards */
+.tilt-card-wrapper {
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
 .dark {
   --background: oklch(0.10 0.005 250);
   --foreground: oklch(0.95 0 0);

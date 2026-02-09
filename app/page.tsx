@@ -34,6 +34,12 @@ export default function Portfolio() {
   const [filter, setFilter] = useState("TOUT");
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSafari, setIsSafari] = useState(false);
+  
+  // Détecte Safari après hydratation (côté client uniquement)
+  useEffect(() => {
+    setIsSafari(/^((?!chrome|android).)*safari/i.test(navigator.userAgent));
+  }, []);
   
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -116,35 +122,61 @@ export default function Portfolio() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
           <div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0 }}
-            className="font-bold text-4xl tracking-[-0.005em]"
-          >
-            JEAN LANOT
-          </motion.h1>
+            {isSafari ? (
+              <h1 className="font-bold text-4xl tracking-[-0.005em]">
+                JEAN LANOT
+              </h1>
+            ) : (
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="font-bold text-4xl tracking-[-0.005em]"
+              >
+                JEAN LANOT
+              </motion.h1>
+            )}
           </div>
-          <nav
-            className="hidden md:flex gap-8 text-base font-medium">
-            <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.08 }}
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">PORTFOLIO</motion.button>
-            <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.12 }}
-            onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">À PROPOS</motion.button>
-            <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.16 }}
-            onClick={() => scrollTo('contact')} className="hover:text-gray-300 transition-colors">CONTACT</motion.button>
+          <nav className="hidden md:flex gap-8 text-base font-medium">
+            {isSafari ? (
+              <>
+                <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
+                <button onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">À PROPOS</button>
+                <button onClick={() => scrollTo('contact')} className="hover:text-gray-300 transition-colors">CONTACT</button>
+              </>
+            ) : (
+              <>
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.08 }}
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  className="hover:text-gray-300 transition-colors"
+                >
+                  PORTFOLIO
+                </motion.button>
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.12 }}
+                  onClick={() => scrollTo('about')}
+                  className="hover:text-gray-300 transition-colors"
+                >
+                  À PROPOS
+                </motion.button>
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.16 }}
+                  onClick={() => scrollTo('contact')}
+                  className="hover:text-gray-300 transition-colors"
+                >
+                  CONTACT
+                </motion.button>
+              </>
+            )}
           </nav>
           
-          {/* Burger Menu Button - Mobile Only */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -210,27 +242,42 @@ export default function Portfolio() {
         <section id="portfolio" className="mb-32">
           {/* Filtres */}
           <div className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
-            {categories.map((cat, index) => (
-              <motion.button
-                key={cat}
-                onClick={() => setFilter(cat)}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.6,
-                  delay: 0.2 + index * 0.08,
-                  ease: "easeOut"
-                }}
-                className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border ${
-                  filter === cat
-                    ? "bg-white/90 text-black border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
-                    : "bg-white/5 backdrop-blur-md text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/30 hover:text-white shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
-                }`}
-              >
-                {cat}
-              </motion.button>
-            ))}
+            {categories.map((cat, index) =>
+              isSafari ? (
+                <button
+                  key={cat}
+                  onClick={() => setFilter(cat)}
+                  className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border ${
+                    filter === cat
+                      ? "bg-white/90 text-black border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+                      : "bg-white/5 backdrop-blur-md text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/30 hover:text-white shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ) : (
+                <motion.button
+                  key={cat}
+                  onClick={() => setFilter(cat)}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.6,
+                    delay: 0.2 + index * 0.08,
+                    ease: "easeOut"
+                  }}
+                  className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border ${
+                    filter === cat
+                      ? "bg-white/90 text-black border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+                      : "bg-white/5 backdrop-blur-md text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/30 hover:text-white shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+                  }`}
+                >
+                  {cat}
+                </motion.button>
+              )
+            )}
           </div>
+
 
           {/* Grille Vidéo */}
           <motion.div
@@ -274,53 +321,92 @@ export default function Portfolio() {
         </section>
 
         {/* SECTION À PROPOS */}
-        <motion.section
-        id="about"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.6 }}
-        className="mb-12 scroll-mt-32">
-          <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-            <div className="flex flex-col md:flex-row items-center gap-10">
-              {/* PHOTO - À REMPLACER */}
-              <div className="shrink-0">
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
-                  {/* METS TA PHOTO DANS LE DOSSIER /public ET CHANGE LE SRC ICI */}
-                  <img
-                    src="/ma-photo.webp"
-                    alt="Jean Lanot"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {e.currentTarget.src = "https://placehold.co/400x400/222/FFF?text=JL"}} // Fallback si pas de photo
-                  />
+        {isSafari ? (
+          <section id="about" className="mb-12 scroll-mt-32">
+            <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+              <div className="flex flex-col md:flex-row items-center gap-10">
+                {/* PHOTO */}
+                <div className="shrink-0">
+                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
+                    <img
+                      src="/ma-photo.webp"
+                      alt="Jean Lanot"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {e.currentTarget.src = "https://placehold.co/400x400/222/FFF?text=JL"}}
+                    />
+                  </div>
+                </div>
+                
+                {/* TEXTE */}
+                <div className="text-center md:text-left">
+                  <h2 className="text-2xl font-bold mb-4">À PROPOS</h2>
+                  <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
+                    Monteur vidéo basé à Paris avec plus de 9 ans d'expérience.
+                    Travaillant avec des agences, des productions indépendantes ou des institutions,
+                    aussi bien pour la télévision que pour le web, je suis ouvert à tout type de projet.
+                  </p>
                 </div>
               </div>
-              
-              {/* TEXTE */}
-              <div className="text-center md:text-left">
-                <h2 className="text-2xl font-bold mb-4">À PROPOS</h2>
-                <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
-                  Monteur vidéo basé à Paris avec plus de 9 ans d'expérience.
-                  Travaillant avec des agences, des productions indépendantes ou des institutions,
-                  aussi bien pour la télévision que pour le web, je suis ouvert à tout type de projet.
-                </p>
+            </div>
+          </section>
+        ) : (
+          <motion.section
+            id="about"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="mb-12 scroll-mt-32"
+          >
+            <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+              <div className="flex flex-col md:flex-row items-center gap-10">
+                {/* PHOTO */}
+                <div className="shrink-0">
+                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
+                    <img
+                      src="/ma-photo.webp"
+                      alt="Jean Lanot"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {e.currentTarget.src = "https://placehold.co/400x400/222/FFF?text=JL"}}
+                    />
+                  </div>
+                </div>
+                
+                {/* TEXTE */}
+                <div className="text-center md:text-left">
+                  <h2 className="text-2xl font-bold mb-4">À PROPOS</h2>
+                  <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
+                    Monteur vidéo basé à Paris avec plus de 9 ans d'expérience.
+                    Travaillant avec des agences, des productions indépendantes ou des institutions,
+                    aussi bien pour la télévision que pour le web, je suis ouvert à tout type de projet.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        </motion.section>
+          </motion.section>
+        )}
 
         {/* SECTION CONTACT */}
-        <motion.section
-        id="contact"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.7 }}
-        className="scroll-mt-32">
-          <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-            <h2 className="text-2xl font-bold mb-8">CONTACT</h2>
-            {/* Formulaire de contact */}
-            <ContactForm />
-          </div>
-        </motion.section>
+        {isSafari ? (
+          <section id="contact" className="scroll-mt-32">
+            <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+              <h2 className="text-2xl font-bold mb-8">CONTACT</h2>
+              <ContactForm />
+            </div>
+          </section>
+        ) : (
+          <motion.section
+            id="contact"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="scroll-mt-32"
+          >
+            <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+              <h2 className="text-2xl font-bold mb-8">CONTACT</h2>
+              <ContactForm />
+            </div>
+          </motion.section>
+        )}
 
       </main>
 

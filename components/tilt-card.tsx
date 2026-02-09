@@ -66,7 +66,6 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
         rotateY,
         transformStyle: "preserve-3d",
         transform: "translateZ(0)",
-        willChange: "transform",
       }}
     >
 
@@ -97,11 +96,16 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
         {/* Gradient dégradé du bas (titre) */}
         <motion.div
           className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
+          style={{
+            WebkitTransform: "translateZ(0)",
+            transform: "translateZ(0)",
+          }}
           animate={{
             opacity: isHovered ? 0 : 1,
           }}
           transition={{ duration: 0.3 }}
         />
+
 
         {/* Glare effect qui suit la souris */}
         <motion.div
