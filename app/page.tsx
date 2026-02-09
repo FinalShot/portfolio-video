@@ -123,7 +123,8 @@ export default function Portfolio() {
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
           <div>
             {isSafari ? (
-              <h1 className="font-bold text-4xl tracking-[-0.005em]">
+              <h1 className="font-bold text-4xl tracking-[-0.005em] select-none cursor-pointer"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                 JEAN LANOT
               </h1>
             ) : (
@@ -131,7 +132,8 @@ export default function Portfolio() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="font-bold text-4xl tracking-[-0.005em]"
+                className="font-bold text-4xl tracking-[-0.005em] select-none cursor-pointer"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               >
                 JEAN LANOT
               </motion.h1>
