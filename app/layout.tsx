@@ -1,6 +1,7 @@
 import React from "react"
 import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 import { StructuredData } from '@/components/structured-data'
 import { Inter } from 'next/font/google'
@@ -110,6 +111,7 @@ export default function RootLayout({
         <StructuredData />
         {children}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
