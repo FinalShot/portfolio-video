@@ -22,11 +22,27 @@ const EXTERNAL_VIDEOS = [
   {
     title: "Olympic Museum",
     thumbnailUrl: "/thumbnails/olympic-museum.jpeg",
-    videoUrl: "https://www.instagram.com/p/C-dJ5BoszI9/",
+    videoUrl: "https://www.instagram.com/reels/C-dJ5BoszI9/",
     category: "PUBS & BRAND CONTENT" as const,
     date: "2024-08-09",
-    aspectRatio: "square" as const,
-  }
+    aspectRatio: "landscape" as const,
+  },
+    {
+      title: "Audi France - e-tron endurance experience",
+      thumbnailUrl: "/thumbnails/audi.jpg",
+      videoUrl: "https://www.instagram.com/reels/C6_fS-cNv5Y/",
+      category: "PUBS & BRAND CONTENT" as const,
+      date: "2024-05-15",
+      aspectRatio: "landscape" as const,
+    },
+    {
+      title: "NMA x Amazon Music",
+      thumbnailUrl: "/thumbnails/nmaxamazonmusic.jpg",
+      videoUrl: "https://www.instagram.com/reels/ClUEmThgfi-/",
+      category: "PUBS & BRAND CONTENT" as const,
+      date: "2022-11-23",
+      aspectRatio: "landscape" as const,
+    }
 ];
 
 // --- PAGE PRINCIPALE ---
