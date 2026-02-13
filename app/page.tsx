@@ -42,6 +42,14 @@ const EXTERNAL_VIDEOS = [
       category: "PUBS & BRAND CONTENT" as const,
       date: "2022-11-23",
       aspectRatio: "landscape" as const,
+    },
+    {
+      title: "Air Caraïbes",
+      thumbnailUrl: "/thumbnails/aircaraibes.jpg",
+      videoUrl: "https://www.instagram.com/reels/DSQSfXVEUmW/",
+      category: "PUBS & BRAND CONTENT" as const,
+      date: "2025-12-14",
+      aspectRatio: "landscape" as const,
     }
 ];
 
