@@ -11,6 +11,14 @@ import Image from 'next/image';
 // --- CONFIGURATION ---
 // Vidéos externes (Vimeo, Instagram, etc.)
 const EXTERNAL_VIDEOS = [
+    {
+      title: "Marie-Jo Lingerie - Paris",
+      thumbnailUrl: "/thumbnails/marie-jo.jpg",
+      videoUrl: "https://www.instagram.com/reels/DV5wdySiJWf/",
+      category: "PUBS & BRAND CONTENT" as const,
+      date: "2026-03-15",
+      aspectRatio: "landscape" as const,
+    },
   {
     title: "TF1 - Kev Adams Le Before",
     thumbnailUrl: "https://i.vimeocdn.com/video/1748333621-6556ab122d6d8571b0f94d1c4e33b94928a32adcf1a4ab6f80959c79b258aba2-d_640",
