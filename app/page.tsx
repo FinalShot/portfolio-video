@@ -12,7 +12,7 @@ import Image from 'next/image';
 // Vidéos externes (Vimeo, Instagram, etc.)
 const EXTERNAL_VIDEOS = [
     {
-      title: "Marie-Jo Lingerie - Paris",
+      title: "Marie Jo Lingerie – Paris",
       thumbnailUrl: "/thumbnails/marie-jo.jpg",
       videoUrl: "https://www.instagram.com/reels/DV5wdySiJWf/",
       category: "PUBS & BRAND CONTENT" as const,
