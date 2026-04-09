@@ -147,7 +147,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
             transition={{ duration: 0.3 }}
             style={{ transform: "translateZ(30px)" }}
           >
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
               {video.category}
             </span>
             <h3 className="mt-1 text-lg md:text-xl font-bold text-white line-clamp-2">

@@ -351,7 +351,7 @@ export default function Portfolio() {
           </motion.div>
           
           {filteredVideos.length === 0 && !loading && (
-            <div className="text-center py-20 text-gray-500">Aucune vidéo trouvée dans cette catégorie. Vérifiez vos descriptions YouTube !</div>
+            <div className="text-center py-20 text-gray-400">Aucune vidéo trouvée dans cette catégorie.</div>
           )}
         </section>
 
@@ -458,7 +458,7 @@ export default function Portfolio() {
       </main>
 
       {/* FOOTER SIMPLE */}
-      <footer className="py-8 text-center text-gray-600 text-xs border-t border-white/5">
+      <footer className="py-8 text-center text-gray-400 text-xs border-t border-white/5">
         &copy; {new Date().getFullYear()} Jean Lanot. Tous droits réservés.
       </footer>
     </div>
