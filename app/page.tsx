@@ -363,11 +363,13 @@ export default function Portfolio() {
                 {/* PHOTO */}
                 <div className="shrink-0">
                   <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
-                    <img
+                    <Image
                       src="/ma-photo.webp"
                       alt="Jean Lanot"
+                      width={160}
+                      height={160}
                       className="w-full h-full object-cover"
-                      onError={(e) => {e.currentTarget.src = "https://placehold.co/400x400/222/FFF?text=JL"}}
+                      priority
                     />
                   </div>
                 </div>
@@ -400,11 +402,13 @@ export default function Portfolio() {
                 {/* PHOTO */}
                 <div className="shrink-0">
                   <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
-                    <img
+                    <Image
                       src="/ma-photo.webp"
                       alt="Jean Lanot"
+                      width={160}
+                      height={160}
                       className="w-full h-full object-cover"
-                      onError={(e) => {e.currentTarget.src = "https://placehold.co/400x400/222/FFF?text=JL"}}
+                      priority
                     />
                   </div>
                 </div>
