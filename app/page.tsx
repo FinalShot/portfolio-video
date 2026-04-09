@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
-import { Mail, Phone, Play, ArrowRight, Menu, X } from "lucide-react";
+import { Mail, Phone, Play, ArrowRight, Menu, X, Linkedin, Instagram } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { TiltCard } from "@/components/tilt-card";
 import type { Video } from "@/lib/videos";
@@ -177,7 +177,7 @@ export default function Portfolio() {
               <>
                 <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
                 <button onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">À PROPOS</button>
-                <button onClick={() => scrollTo('contact')} className="hover:text-gray-300 transition-colors">CONTACT</button>
+                <button onClick={() => scrollTo('contact')} className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold">CONTACT</button>
               </>
             ) : (
               <>
@@ -204,7 +204,7 @@ export default function Portfolio() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.16 }}
                   onClick={() => scrollTo('contact')}
-                  className="hover:text-gray-300 transition-colors"
+                  className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold"
                 >
                   CONTACT
                 </motion.button>
@@ -437,6 +437,7 @@ export default function Portfolio() {
             <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
               <h2 className="text-2xl font-bold mb-8">CONTACT</h2>
               <ContactForm />
+              <p className="mt-6 text-sm text-gray-400">Ou directement par email : <a href="mailto:contact@jeanlanot.com" className="text-white hover:underline">contact@jeanlanot.com</a></p>
             </div>
           </section>
         ) : (
@@ -451,15 +452,29 @@ export default function Portfolio() {
             <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
               <h2 className="text-2xl font-bold mb-8">CONTACT</h2>
               <ContactForm />
+              <p className="mt-6 text-sm text-gray-400">Ou directement par email : <a href="mailto:contact@jeanlanot.com" className="text-white hover:underline">contact@jeanlanot.com</a></p>
             </div>
           </motion.section>
         )}
 
       </main>
 
-      {/* FOOTER SIMPLE */}
-      <footer className="py-8 text-center text-gray-400 text-xs border-t border-white/5">
-        &copy; {new Date().getFullYear()} Jean Lanot. Tous droits réservés.
+      {/* FOOTER */}
+      <footer className="py-8 border-t border-white/5">
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex items-center gap-4">
+            <a href="https://www.linkedin.com/in/jean-lanot" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-gray-400 hover:text-white transition-colors">
+              <Linkedin className="w-5 h-5" />
+            </a>
+            <a href="https://www.instagram.com/jean_lanot/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-gray-400 hover:text-white transition-colors">
+              <Instagram className="w-5 h-5" />
+            </a>
+            <a href="mailto:contact@jeanlanot.com" aria-label="Email" className="text-gray-400 hover:text-white transition-colors">
+              <Mail className="w-5 h-5" />
+            </a>
+          </div>
+          <p className="text-gray-400 text-xs">&copy; {new Date().getFullYear()} Jean Lanot. Tous droits réservés.</p>
+        </div>
       </footer>
     </div>
   );
