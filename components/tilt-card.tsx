@@ -80,8 +80,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
           quality={85}
           placeholder="blur"
           blurDataURL={`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E`}
-          unoptimized={true}
-          onLoadingComplete={() => setImageLoaded(true)}
+          onLoad={() => setImageLoaded(true)}
         />
       </div>
 
@@ -148,7 +147,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
             transition={{ duration: 0.3 }}
             style={{ transform: "translateZ(30px)" }}
           >
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
               {video.category}
             </span>
             <h3 className="mt-1 text-lg md:text-xl font-bold text-white line-clamp-2">

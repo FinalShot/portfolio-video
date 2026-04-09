@@ -62,6 +62,11 @@ export const metadata: Metadata = {
     creator: '@jeanlanot', // ← Change si tu as un Twitter
   },
   
+  // Canonical
+  alternates: {
+    canonical: 'https://jeanlanot.com',
+  },
+  
   // Robots
   robots: {
     index: true,
