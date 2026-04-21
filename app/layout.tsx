@@ -6,6 +6,7 @@ import './globals.css'
 import { StructuredData } from '@/components/structured-data'
 import { Inter } from 'next/font/google'
 import { Ubuntu } from 'next/font/google'
+import { LangProvider } from '@/lib/lang-context'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -15,7 +16,7 @@ const inter = Inter({
 
 const ubuntu = Ubuntu({
   subsets: ['latin'],
-  weight: ['400', '500', '700'], // ⬅️ IMPORTANT : spécifier les poids
+  weight: ['400', '500', '700'],
   display: 'swap',
   variable: '--font-ubuntu',
 })
@@ -34,8 +35,6 @@ export const metadata: Metadata = {
   creator: 'Jean Lanot',
   publisher: 'Jean Lanot',
   generator: 'Next.js',
-  
-  // Open Graph (Facebook, LinkedIn, WhatsApp)
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
@@ -45,29 +44,23 @@ export const metadata: Metadata = {
     siteName: 'Jean Lanot Portfolio',
     images: [
       {
-        url: '/og-image.jpg', // On va créer cette image
+        url: '/og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'Jean Lanot - Monteur Vidéo',
       },
     ],
   },
-  
-  // Twitter Card
   twitter: {
     card: 'summary_large_image',
     title: 'Jean Lanot | Monteur vidéo',
     description: 'Portfolio de montage vidéo - Pubs, documentaires, fictions',
     images: ['/og-image.jpg'],
-    creator: '@jeanlanot', // ← Change si tu as un Twitter
+    creator: '@jeanlanot',
   },
-  
-  // Canonical
   alternates: {
     canonical: 'https://jeanlanot.com',
   },
-  
-  // Robots
   robots: {
     index: true,
     follow: true,
@@ -79,30 +72,14 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  
-  // Icons
   icons: {
     icon: [
-      {
-        url: '/icon-light-512x512.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-512x512.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/icon-light-512x512.png', media: '(prefers-color-scheme: light)' },
+      { url: '/icon-dark-512x512.png', media: '(prefers-color-scheme: dark)' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
     ],
     apple: '/apple-icon.png',
   },
-  
-  // Verification (Google Search Console)
-  // verification: {
-  //   google: 'ton-code-google-verification',
-  // },
 }
 
 export default function RootLayout({
@@ -114,7 +91,9 @@ export default function RootLayout({
     <html lang="fr" className={`${inter.className} ${ubuntu.variable}`}>
       <body className={`font-sans antialiased`}>
         <StructuredData />
-        {children}
+        <LangProvider>
+          {children}
+        </LangProvider>
         <Analytics />
         <SpeedInsights />
       </body>
