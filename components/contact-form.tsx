@@ -1,12 +1,15 @@
 "use client";
 
-import React from "react"
-
+import React from "react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Send, Loader2, CheckCircle } from "lucide-react";
+import { useLang } from "@/lib/lang-context";
+import { translations } from "@/lib/translations";
 
 export function ContactForm() {
+  const { lang } = useLang();
+  const t = translations[lang].form;
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -36,11 +39,11 @@ export function ContactForm() {
         (e.target as HTMLFormElement).reset();
       } else {
         setStatus("error");
-        setErrorMessage(result.error || "Une erreur est survenue.");
+        setErrorMessage(result.error || t.errorDefault);
       }
     } catch {
       setStatus("error");
-      setErrorMessage("Erreur de connexion. Veuillez réessayer.");
+      setErrorMessage(t.errorConnection);
     }
   }
 
@@ -52,13 +55,13 @@ export function ContactForm() {
         className="flex flex-col items-center gap-4 py-8"
       >
         <CheckCircle className="w-12 h-12 text-green-400" />
-        <p className="text-lg font-medium text-white">Message envoyé avec succès !</p>
-        <p className="text-gray-400 text-sm">Je vous répondrai dans les plus brefs délais.</p>
+        <p className="text-lg font-medium text-white">{t.successTitle}</p>
+        <p className="text-gray-400 text-sm">{t.successSub}</p>
         <button
           onClick={() => setStatus("idle")}
           className="mt-4 text-sm text-gray-400 hover:text-white transition-colors underline underline-offset-4"
         >
-          Envoyer un autre message
+          {t.sendAnother}
         </button>
       </motion.div>
     );
@@ -68,42 +71,42 @@ export function ContactForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md mx-auto text-left">
       <div className="flex flex-col gap-2">
         <label htmlFor="name" className="text-sm font-medium text-gray-300">
-          Nom
+          {t.name}
         </label>
         <input
           type="text"
           id="name"
           name="name"
           required
-          placeholder="Votre nom"
+          placeholder={t.namePlaceholder}
           className="px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-colors"
         />
       </div>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="email" className="text-sm font-medium text-gray-300">
-          Email
+          {t.email}
         </label>
         <input
           type="email"
           id="email"
           name="email"
           required
-          placeholder="votre@email.com"
+          placeholder={t.emailPlaceholder}
           className="px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-colors"
         />
       </div>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="message" className="text-sm font-medium text-gray-300">
-          Message
+          {t.message}
         </label>
         <textarea
           id="message"
           name="message"
           required
           rows={4}
-          placeholder="Votre message..."
+          placeholder={t.messagePlaceholder}
           className="px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-colors resize-none"
         />
       </div>
@@ -120,12 +123,12 @@ export function ContactForm() {
         {status === "loading" ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin" />
-            Envoi en cours...
+            {t.sending}
           </>
         ) : (
           <>
             <Send className="w-4 h-4" />
-            Envoyer
+            {t.send}
           </>
         )}
       </button>
