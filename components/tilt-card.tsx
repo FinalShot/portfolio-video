@@ -5,6 +5,8 @@ import Image from "next/image";
 import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from "framer-motion";
 import type { Video } from "@/lib/videos";
 import { Play, Youtube } from "lucide-react";
+import { useLang } from "@/lib/lang-context";
+import { translations } from "@/lib/translations";
 
 interface TiltCardProps {
   video: Video;
@@ -17,6 +19,7 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
+  const { lang } = useLang();
   
   const rotateX = useSpring(useTransform(y, [0, 1], [6, -6]), {
     stiffness: 300,
@@ -148,7 +151,15 @@ export function TiltCard({ video, onClick }: TiltCardProps) {
             style={{ transform: "translateZ(30px)" }}
           >
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
-              {video.category}
+              {(() => {
+                const map: Record<string, { fr: string; en: string }> = {
+                  "PUBS & BRAND CONTENT": { fr: "PUBS & BRAND CONTENT", en: "ADS & BRAND CONTENT" },
+                  "EMISSIONS & DOCS":     { fr: "ÉMISSIONS & DOCS",     en: "SHOWS & DOCS" },
+                  "BANDES-ANNONCES":      { fr: "BANDES-ANNONCES",      en: "TRAILERS" },
+                  "FICTIONS":             { fr: "FICTIONS",             en: "FICTION" },
+                };
+                return map[video.category]?.[lang] ?? video.category;
+              })()}
             </span>
             <h3 className="mt-1 text-lg md:text-xl font-bold text-white line-clamp-2">
               {video.title}
