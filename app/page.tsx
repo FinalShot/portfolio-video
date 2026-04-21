@@ -1,24 +1,26 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
-import { Mail, Phone, Play, ArrowRight, Menu, X, Linkedin, Instagram } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mail, Menu, X, Linkedin, Instagram } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { TiltCard } from "@/components/tilt-card";
+import { LanguageToggle } from "@/components/language-toggle";
+import { useLang } from "@/lib/lang-context";
+import { translations } from "@/lib/translations";
 import type { Video } from "@/lib/videos";
 import Image from 'next/image';
 
 // --- CONFIGURATION ---
-// Vidéos externes (Vimeo, Instagram, etc.)
 const EXTERNAL_VIDEOS = [
-    {
-      title: "Marie Jo Lingerie – Paris",
-      thumbnailUrl: "/thumbnails/marie-jo.jpg",
-      videoUrl: "https://www.instagram.com/reels/DV5wdySiJWf/",
-      category: "PUBS & BRAND CONTENT" as const,
-      date: "2026-03-15",
-      aspectRatio: "landscape" as const,
-    },
+  {
+    title: "Marie Jo Lingerie – Paris",
+    thumbnailUrl: "/thumbnails/marie-jo.jpg",
+    videoUrl: "https://www.instagram.com/reels/DV5wdySiJWf/",
+    category: "PUBS & BRAND CONTENT" as const,
+    date: "2026-03-15",
+    aspectRatio: "landscape" as const,
+  },
   {
     title: "TF1 - Kev Adams Le Before",
     thumbnailUrl: "https://i.vimeocdn.com/video/1748333621-6556ab122d6d8571b0f94d1c4e33b94928a32adcf1a4ab6f80959c79b258aba2-d_640",
@@ -35,62 +37,69 @@ const EXTERNAL_VIDEOS = [
     date: "2024-08-09",
     aspectRatio: "landscape" as const,
   },
-    {
-      title: "Audi France - e-tron endurance experience",
-      thumbnailUrl: "/thumbnails/audi.jpg",
-      videoUrl: "https://www.instagram.com/reels/C6_fS-cNv5Y/",
-      category: "PUBS & BRAND CONTENT" as const,
-      date: "2024-05-15",
-      aspectRatio: "landscape" as const,
-    },
-    {
-      title: "NMA x Amazon Music",
-      thumbnailUrl: "/thumbnails/nmaxamazonmusic.jpg",
-      videoUrl: "https://www.instagram.com/reels/ClUEmThgfi-/",
-      category: "PUBS & BRAND CONTENT" as const,
-      date: "2022-11-23",
-      aspectRatio: "landscape" as const,
-    },
-    {
-      title: "Air Caraïbes",
-      thumbnailUrl: "/thumbnails/aircaraibes.jpg",
-      videoUrl: "https://www.instagram.com/reels/DSQSfXVEUmW/",
-      category: "PUBS & BRAND CONTENT" as const,
-      date: "2025-12-14",
-      aspectRatio: "landscape" as const,
-    }
+  {
+    title: "Audi France - e-tron endurance experience",
+    thumbnailUrl: "/thumbnails/audi.jpg",
+    videoUrl: "https://www.instagram.com/reels/C6_fS-cNv5Y/",
+    category: "PUBS & BRAND CONTENT" as const,
+    date: "2024-05-15",
+    aspectRatio: "landscape" as const,
+  },
+  {
+    title: "NMA x Amazon Music",
+    thumbnailUrl: "/thumbnails/nmaxamazonmusic.jpg",
+    videoUrl: "https://www.instagram.com/reels/ClUEmThgfi-/",
+    category: "PUBS & BRAND CONTENT" as const,
+    date: "2022-11-23",
+    aspectRatio: "landscape" as const,
+  },
+  {
+    title: "Air Caraïbes",
+    thumbnailUrl: "/thumbnails/aircaraibes.jpg",
+    videoUrl: "https://www.instagram.com/reels/DSQSfXVEUmW/",
+    category: "PUBS & BRAND CONTENT" as const,
+    date: "2025-12-14",
+    aspectRatio: "landscape" as const,
+  }
 ];
 
-// --- PAGE PRINCIPALE ---
+// Map des catégories FR → clé de traduction
+const CATEGORY_KEYS: Record<string, keyof typeof translations["fr"]["categories"]> = {
+  "TOUT": "all",
+  "PUBS & BRAND CONTENT": "ads",
+  "EMISSIONS & DOCS": "docs",
+  "BANDES-ANNONCES": "trailers",
+  "FICTIONS": "fiction",
+};
+
+const FR_CATEGORIES = ["TOUT", "PUBS & BRAND CONTENT", "EMISSIONS & DOCS", "BANDES-ANNONCES", "FICTIONS"];
+
 export default function Portfolio() {
+  const { lang } = useLang();
+  const t = translations[lang];
+
   const [videos, setVideos] = useState<Video[]>([]);
   const [filter, setFilter] = useState("TOUT");
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSafari, setIsSafari] = useState(false);
-  
-  // Détecte Safari après hydratation (côté client uniquement)
+
   useEffect(() => {
     setIsSafari(/^((?!chrome|android).)*safari/i.test(navigator.userAgent));
   }, []);
-  
+
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   }, []);
 
-  // Récupération des vidéos via API route sécurisée
   useEffect(() => {
     async function fetchVideos() {
       try {
         setLoading(true);
-        
-        // 1. Charger les vidéos YouTube (déjà au bon format !)
         const youtubeRes = await fetch("/api/youtube");
         const youtubeData = await youtubeRes.json();
         const youtubeVideos: Video[] = youtubeData.videos || [];
-        // ← Plus besoin de mapper ! L'API retourne déjà le bon format
 
-        // 2. Formater les vidéos externes
         const formattedExternalVideos: Video[] = EXTERNAL_VIDEOS.map(vid => ({
           id: vid.videoUrl,
           title: vid.title,
@@ -103,22 +112,8 @@ export default function Portfolio() {
           aspectRatio: vid.aspectRatio,
         }));
 
-        // 3. Fusionner
         const allVideos = [...youtubeVideos, ...formattedExternalVideos];
-
-        // 4. TRIER par date (important car on mélange YouTube + Externes)
-        allVideos.sort((a, b) => {
-          const dateA = new Date(a.publishedAt).getTime();
-          const dateB = new Date(b.publishedAt).getTime();
-          return dateB - dateA;
-        });
-
-        console.log("✅ Videos triées:", allVideos.map(v => ({
-          title: v.title.substring(0, 30),
-          date: v.publishedAt,
-          source: v.youtubeId ? 'YouTube' : 'Externe'
-        })));
-        
+        allVideos.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
         setVideos(allVideos);
       } catch (error) {
         console.error("Erreur:", error);
@@ -126,38 +121,34 @@ export default function Portfolio() {
         setLoading(false);
       }
     }
-
     fetchVideos();
   }, []);
 
-  const categories = ["TOUT", "PUBS & BRAND CONTENT", "EMISSIONS & DOCS", "BANDES-ANNONCES", "FICTIONS"];
-  
+  // Le filtre reste en clé FR (valeur interne), on affiche la traduction
   const filteredVideos = filter === "TOUT"
     ? videos
     : videos.filter(v => v.category === filter);
 
-  // Fonction de scroll fluide
   const scrollTo = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      const headerHeight = 80; // h-20 = 80px
-      const offsetPosition = element.offsetTop - headerHeight;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth"
-      });
+      const offsetPosition = element.offsetTop - 80;
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
+
       {/* HEADER FIXE */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
           <div>
             {isSafari ? (
-              <h1 className="font-bold text-4xl tracking-[-0.005em] select-none cursor-pointer"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+              <h1
+                className="font-bold text-4xl tracking-[-0.005em] select-none cursor-pointer"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              >
                 JEAN LANOT
               </h1>
             ) : (
@@ -172,46 +163,57 @@ export default function Portfolio() {
               </motion.h1>
             )}
           </div>
-          <nav className="hidden md:flex gap-8 text-base font-medium">
+
+          <nav className="hidden md:flex items-center gap-8 text-base font-medium">
             {isSafari ? (
               <>
-                <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">PORTFOLIO</button>
-                <button onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">À PROPOS</button>
-                <button onClick={() => scrollTo('contact')} className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold">CONTACT</button>
+                <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">
+                  {t.nav.portfolio}
+                </button>
+                <button onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">
+                  {t.nav.about}
+                </button>
+                <button onClick={() => scrollTo('contact')} className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold">
+                  {t.nav.contact}
+                </button>
+                <LanguageToggle />
               </>
             ) : (
               <>
                 <motion.button
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.08 }}
                   onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                   className="hover:text-gray-300 transition-colors"
                 >
-                  PORTFOLIO
+                  {t.nav.portfolio}
                 </motion.button>
                 <motion.button
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.12 }}
                   onClick={() => scrollTo('about')}
                   className="hover:text-gray-300 transition-colors"
                 >
-                  À PROPOS
+                  {t.nav.about}
                 </motion.button>
                 <motion.button
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.16 }}
                   onClick={() => scrollTo('contact')}
                   className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold"
                 >
-                  CONTACT
+                  {t.nav.contact}
                 </motion.button>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.20 }}
+                >
+                  <LanguageToggle />
+                </motion.div>
               </>
             )}
           </nav>
-          
+
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -222,27 +224,17 @@ export default function Portfolio() {
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-40 md:hidden"
           >
-            {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-              onClick={() => setMobileMenuOpen(false)}
-            />
-            
-            {/* Menu Content */}
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
             <motion.nav
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
+              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="absolute top-0 right-0 h-full w-64 bg-[#0a0a0a] border-l border-white/10 pt-24 px-6"
             >
@@ -251,20 +243,23 @@ export default function Portfolio() {
                   onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setMobileMenuOpen(false); }}
                   className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
                 >
-                  PORTFOLIO
+                  {t.nav.portfolio}
                 </button>
                 <button
                   onClick={() => { scrollTo('about'); setMobileMenuOpen(false); }}
                   className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
                 >
-                  À PROPOS
+                  {t.nav.about}
                 </button>
                 <button
                   onClick={() => { scrollTo('contact'); setMobileMenuOpen(false); }}
                   className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
                 >
-                  CONTACT
+                  {t.nav.contact}
                 </button>
+                <div className="py-2 border-b border-white/5">
+                  <LanguageToggle />
+                </div>
               </div>
             </motion.nav>
           </motion.div>
@@ -272,13 +267,14 @@ export default function Portfolio() {
       </AnimatePresence>
 
       <main className="pt-32 pb-20 px-6 max-w-[95%] mx-auto">
-        
+
         {/* SECTION PORTFOLIO */}
         <section id="portfolio" className="mb-32">
           {/* Filtres */}
           <div className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
-            {categories.map((cat, index) =>
-              isSafari ? (
+            {FR_CATEGORIES.map((cat, index) => {
+              const label = t.categories[CATEGORY_KEYS[cat]];
+              return isSafari ? (
                 <button
                   key={cat}
                   onClick={() => setFilter(cat)}
@@ -288,7 +284,7 @@ export default function Portfolio() {
                       : "bg-white/5 backdrop-blur-md text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/30 hover:text-white shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
                   }`}
                 >
-                  {cat}
+                  {label}
                 </button>
               ) : (
                 <motion.button
@@ -296,62 +292,46 @@ export default function Portfolio() {
                   onClick={() => setFilter(cat)}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.6,
-                    delay: 0.2 + index * 0.08,
-                    ease: "easeOut"
-                  }}
+                  transition={{ duration: 0.6, delay: 0.2 + index * 0.08, ease: "easeOut" }}
                   className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border ${
                     filter === cat
                       ? "bg-white/90 text-black border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
                       : "bg-white/5 backdrop-blur-md text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/30 hover:text-white shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
                   }`}
                 >
-                  {cat}
+                  {label}
                 </motion.button>
-              )
-            )}
+              );
+            })}
           </div>
 
-
           {/* Grille Vidéo */}
-          <motion.div
-            layout
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
+          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
             <AnimatePresence>
               {filteredVideos.map((video) => (
                 <motion.div
-                  layout
-                  key={video.id}
+                  layout key={video.id}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3 }}
                 >
-                <TiltCard
-                      video={video}
-                      onClick={() => {
-                        // Ouvrir directement dans un nouvel onglet
-                        let url = '';
-                        
-                        if (video.youtubeId) {
-                          url = `https://www.youtube.com/watch?v=${video.youtubeId}`;
-                        } else if (video.videoUrl) {
-                          url = video.videoUrl;
-                        }
-                        
-                        if (url) {
-                          window.open(url, '_blank', 'noopener,noreferrer');
-                        }
-                      }}
-                    />
+                  <TiltCard
+                    video={video}
+                    onClick={() => {
+                      const url = video.youtubeId
+                        ? `https://www.youtube.com/watch?v=${video.youtubeId}`
+                        : video.videoUrl || '';
+                      if (url) window.open(url, '_blank', 'noopener,noreferrer');
+                    }}
+                  />
                 </motion.div>
               ))}
             </AnimatePresence>
           </motion.div>
-          
+
           {filteredVideos.length === 0 && !loading && (
-            <div className="text-center py-20 text-gray-400">Aucune vidéo trouvée dans cette catégorie.</div>
+            <div className="text-center py-20 text-gray-400">{t.noVideos}</div>
           )}
         </section>
 
@@ -360,30 +340,17 @@ export default function Portfolio() {
           <section id="about" className="mb-12 scroll-mt-32">
             <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
               <div className="flex flex-col md:flex-row items-center gap-10">
-                {/* PHOTO */}
                 <div className="shrink-0">
                   <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
-                    <Image
-                      src="/ma-photo.webp"
-                      alt="Jean Lanot"
-                      width={160}
-                      height={160}
-                      className="w-full h-full object-cover"
-                      priority
-                    />
+                    <Image src="/ma-photo.webp" alt="Jean Lanot" width={160} height={160} className="w-full h-full object-cover" priority />
                   </div>
                 </div>
-                
-                {/* TEXTE */}
                 <div className="text-center md:text-left">
-                  <h2 className="text-2xl font-bold mb-4">À PROPOS</h2>
+                  <h2 className="text-2xl font-bold mb-4">{t.about.title}</h2>
                   <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
-                    Monteur vidéo basé à Paris avec plus de 9 ans d'expérience.
-                    <br />
-                    Je collabore avec des agences, des productions indépendantes et institutions,
-                    aussi bien pour la télévision que pour le web.
-                    <br />
-                    Du brand content rythmé au documentaire d'investigation, j'adapte ma narration aux codes de chaque format.
+                    {t.about.bio.split('\n').map((line, i) => (
+                      <React.Fragment key={i}>{line}{i < t.about.bio.split('\n').length - 1 && <br />}</React.Fragment>
+                    ))}
                   </p>
                 </div>
               </div>
@@ -392,38 +359,23 @@ export default function Portfolio() {
         ) : (
           <motion.section
             id="about"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.6 }}
             className="mb-12 scroll-mt-32"
           >
             <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
               <div className="flex flex-col md:flex-row items-center gap-10">
-                {/* PHOTO */}
                 <div className="shrink-0">
                   <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
-                    <Image
-                      src="/ma-photo.webp"
-                      alt="Jean Lanot"
-                      width={160}
-                      height={160}
-                      className="w-full h-full object-cover"
-                      priority
-                    />
+                    <Image src="/ma-photo.webp" alt="Jean Lanot" width={160} height={160} className="w-full h-full object-cover" priority />
                   </div>
                 </div>
-                
-                {/* TEXTE */}
                 <div className="text-center md:text-left">
-                  <h2 className="text-2xl font-bold mb-4">À PROPOS</h2>
+                  <h2 className="text-2xl font-bold mb-4">{t.about.title}</h2>
                   <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
-                  Monteur vidéo basé à Paris avec plus de 9 ans d'expérience.
-                  <br />
-                  Je collabore avec des agences, des productions indépendantes et institutions,
-                  aussi bien pour la télévision que pour le web.
-                  <br />
-                  Du brand content rythmé au documentaire d'investigation, j'adapte ma narration aux codes de chaque format.
+                    {t.about.bio.split('\n').map((line, i) => (
+                      <React.Fragment key={i}>{line}{i < t.about.bio.split('\n').length - 1 && <br />}</React.Fragment>
+                    ))}
                   </p>
                 </div>
               </div>
@@ -435,24 +387,28 @@ export default function Portfolio() {
         {isSafari ? (
           <section id="contact" className="scroll-mt-32">
             <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-              <h2 className="text-2xl font-bold mb-8">CONTACT</h2>
+              <h2 className="text-2xl font-bold mb-8">{t.contact.title}</h2>
               <ContactForm />
-              <p className="mt-6 text-sm text-gray-400">Ou directement par email : <a href="mailto:contact@jeanlanot.com" className="text-white hover:underline">contact@jeanlanot.com</a></p>
+              <p className="mt-6 text-sm text-gray-400">
+                {t.contact.orEmail}{" "}
+                <a href="mailto:contact@jeanlanot.com" className="text-white hover:underline">contact@jeanlanot.com</a>
+              </p>
             </div>
           </section>
         ) : (
           <motion.section
             id="contact"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.6 }}
             className="scroll-mt-32"
           >
             <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-              <h2 className="text-2xl font-bold mb-8">CONTACT</h2>
+              <h2 className="text-2xl font-bold mb-8">{t.contact.title}</h2>
               <ContactForm />
-              <p className="mt-6 text-sm text-gray-400">Ou directement par email : <a href="mailto:contact@jeanlanot.com" className="text-white hover:underline">contact@jeanlanot.com</a></p>
+              <p className="mt-6 text-sm text-gray-400">
+                {t.contact.orEmail}{" "}
+                <a href="mailto:contact@jeanlanot.com" className="text-white hover:underline">contact@jeanlanot.com</a>
+              </p>
             </div>
           </motion.section>
         )}
@@ -473,9 +429,10 @@ export default function Portfolio() {
               <Mail className="w-5 h-5" />
             </a>
           </div>
-          <p className="text-gray-400 text-xs">&copy; {new Date().getFullYear()} Jean Lanot. Tous droits réservés.</p>
+          <p className="text-gray-400 text-xs">&copy; {new Date().getFullYear()} Jean Lanot. {t.footer.rights}</p>
         </div>
       </footer>
+
     </div>
   );
 }
