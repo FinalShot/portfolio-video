@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Menu, X, Linkedin, Instagram } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
@@ -13,7 +13,7 @@ import Image from 'next/image';
 
 const EXTERNAL_VIDEOS = [
   {
-    title: "Marie Jo Lingerie – Paris",
+    title: "Marie Jo Lingerie \u2013 Paris",
     thumbnailUrl: "/thumbnails/marie-jo.jpg",
     videoUrl: "https://www.instagram.com/reels/DV5wdySiJWf/",
     category: "PUBS & BRAND CONTENT" as const,
@@ -53,7 +53,7 @@ const EXTERNAL_VIDEOS = [
     aspectRatio: "landscape" as const,
   },
   {
-    title: "Air Caraïbes",
+    title: "Air Cara\u00efbes",
     thumbnailUrl: "/thumbnails/aircaraibes.jpg",
     videoUrl: "https://www.instagram.com/reels/DSQSfXVEUmW/",
     category: "PUBS & BRAND CONTENT" as const,
@@ -80,8 +80,10 @@ export default function Portfolio() {
   const [filter, setFilter] = useState("TOUT");
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // Ne déclenche le stagger de la grille qu'une seule fois, quand les vidéos arrivent
   const [gridReady, setGridReady] = useState(false);
+  // filterKey changes on every filter click to force re-mount of all cards
+  const filterKeyRef = useRef(0);
+  const [filterKey, setFilterKey] = useState(0);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -119,14 +121,19 @@ export default function Portfolio() {
     fetchVideos();
   }, []);
 
-  // Déclenche le stagger une seule fois, après que les vidéos soient prêtes
-  // Le délai de 100ms laisse le layout se stabiliser (fix Safari)
+  // Trigger initial grid stagger once videos are ready
   useEffect(() => {
     if (!loading && videos.length > 0) {
       const timer = setTimeout(() => setGridReady(true), 100);
       return () => clearTimeout(timer);
     }
   }, [loading, videos]);
+
+  const handleFilterChange = (cat: string) => {
+    setFilter(cat);
+    filterKeyRef.current += 1;
+    setFilterKey(filterKeyRef.current);
+  };
 
   const filteredVideos = filter === "TOUT"
     ? videos
@@ -254,7 +261,7 @@ export default function Portfolio() {
               return (
                 <motion.button
                   key={cat}
-                  onClick={() => setFilter(cat)}
+                  onClick={() => handleFilterChange(cat)}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 + index * 0.07, ease: "easeOut" }}
@@ -270,18 +277,19 @@ export default function Portfolio() {
             })}
           </div>
 
-          {/* Grille Vidéo */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
+          {/* Grille Vid\u00e9o */}
+          {/* filterKey force le re-mount de toutes les cards au changement de filtre */}
+          <div key={filterKey} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
             <AnimatePresence mode="popLayout">
               {filteredVideos.map((video, index) => (
                 <motion.div
                   key={video.id}
                   initial={{ opacity: 0, y: 24 }}
-                  animate={gridReady ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-                  exit={{ opacity: 0, y: -12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   transition={{
-                    duration: 0.45,
-                    delay: gridReady && index < 9 ? index * 0.05 : 0,
+                    duration: 0.4,
+                    delay: index < 9 ? index * 0.05 : 0,
                     ease: "easeOut",
                   }}
                 >
@@ -304,7 +312,7 @@ export default function Portfolio() {
           )}
         </section>
 
-        {/* SECTION À PROPOS */}
+        {/* SECTION \u00c0 PROPOS */}
         <motion.section
           id="about"
           initial={{ opacity: 0, y: 20 }}
