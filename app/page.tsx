@@ -80,6 +80,8 @@ export default function Portfolio() {
   const [filter, setFilter] = useState("TOUT");
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Ne déclenche le stagger de la grille qu'une seule fois, quand les vidéos arrivent
+  const [gridReady, setGridReady] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -117,6 +119,15 @@ export default function Portfolio() {
     fetchVideos();
   }, []);
 
+  // Déclenche le stagger une seule fois, après que les vidéos soient prêtes
+  // Le délai de 100ms laisse le layout se stabiliser (fix Safari)
+  useEffect(() => {
+    if (!loading && videos.length > 0) {
+      const timer = setTimeout(() => setGridReady(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, videos]);
+
   const filteredVideos = filter === "TOUT"
     ? videos
     : videos.filter(v => v.category === filter);
@@ -132,9 +143,10 @@ export default function Portfolio() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
 
-      {/* HEADER */}
+      {/* HEADER FIXE */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
+
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -234,6 +246,7 @@ export default function Portfolio() {
 
         {/* SECTION PORTFOLIO */}
         <section id="portfolio" className="mb-32">
+
           {/* Filtres */}
           <div className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
             {FR_CATEGORIES.map((cat, index) => {
@@ -244,7 +257,7 @@ export default function Portfolio() {
                   onClick={() => setFilter(cat)}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 + index * 0.08, ease: "easeOut" }}
+                  transition={{ duration: 0.5, delay: 0.2 + index * 0.07, ease: "easeOut" }}
                   className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border ${
                     filter === cat
                       ? "bg-white/90 text-black border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
@@ -264,9 +277,13 @@ export default function Portfolio() {
                 <motion.div
                   key={video.id}
                   initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  animate={gridReady ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
                   exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.4, delay: index < 6 ? index * 0.06 : 0, ease: "easeOut" }}
+                  transition={{
+                    duration: 0.45,
+                    delay: gridReady && index < 9 ? index * 0.05 : 0,
+                    ease: "easeOut",
+                  }}
                 >
                   <TiltCard
                     video={video}
