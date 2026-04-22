@@ -331,7 +331,7 @@ export default function Portfolio() {
                 </motion.div>
               ))}
             </AnimatePresence>
-          </motion.div>
+          </div>
 
           {filteredVideos.length === 0 && !loading && (
             <div className="text-center py-20 text-gray-400">{t.noVideos}</div>
