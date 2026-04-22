@@ -82,14 +82,6 @@ export default function Portfolio() {
   const [filter, setFilter] = useState("TOUT");
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isSafari, setIsSafari] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  });
-
-  useEffect(() => {
-    setIsSafari(/^((?!chrome|android).)*safari/i.test(navigator.userAgent));
-  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -147,7 +139,7 @@ export default function Portfolio() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
           <div>
-            {isSafari ? (
+           (
               <h1
                 className="font-bold text-4xl tracking-[-0.005em] select-none cursor-pointer"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -164,11 +156,11 @@ export default function Portfolio() {
               >
                 JEAN LANOT
               </motion.h1>
-            )}
+            )
           </div>
 
           <nav className="hidden md:flex items-center gap-8 text-base font-medium">
-            {isSafari ? (
+            (
               <>
                 <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">
                   {t.nav.portfolio}
@@ -214,7 +206,7 @@ export default function Portfolio() {
                   <LanguageToggle />
                 </motion.div>
               </>
-            )}
+            )
           </nav>
 
           <button
@@ -277,7 +269,7 @@ export default function Portfolio() {
           <div className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
             {FR_CATEGORIES.map((cat, index) => {
               const label = t.categories[CATEGORY_KEYS[cat]];
-              return isSafari ? (
+                (
                 <button
                   key={cat}
                   onClick={() => setFilter(cat)}
@@ -309,15 +301,15 @@ export default function Portfolio() {
           </div>
 
           {/* Grille Vidéo */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
-            <AnimatePresence>
-              {filteredVideos.map((video) => (
+          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
+            <AnimatePresence mode="popLayout">
+              {filteredVideos.map((video, index) => (
                 <motion.div
                   key={video.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.3, delay: index < 6 ? index * 0.06 : 0, ease: "easeOut" }}
                 >
                   <TiltCard
                     video={video}
@@ -331,7 +323,7 @@ export default function Portfolio() {
                 </motion.div>
               ))}
             </AnimatePresence>
-          </div>
+          </motion.div>
 
           {filteredVideos.length === 0 && !loading && (
             <div className="text-center py-20 text-gray-400">{t.noVideos}</div>
@@ -339,7 +331,7 @@ export default function Portfolio() {
         </section>
 
         {/* SECTION À PROPOS */}
-        {isSafari ? (
+        (
           <section id="about" className="mb-12 scroll-mt-32">
             <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
               <div className="flex flex-col md:flex-row items-center gap-10">
@@ -362,8 +354,10 @@ export default function Portfolio() {
         ) : (
           <motion.section
             id="about"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.6 }}
             className="mb-12 scroll-mt-32"
           >
             <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
@@ -384,10 +378,10 @@ export default function Portfolio() {
               </div>
             </div>
           </motion.section>
-        )}
+        )
 
         {/* SECTION CONTACT */}
-        {isSafari ? (
+        (
           <section id="contact" className="scroll-mt-32">
             <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
               <h2 className="text-2xl font-bold mb-8">{t.contact.title}</h2>
@@ -399,12 +393,14 @@ export default function Portfolio() {
             </div>
           </section>
         ) : (
-          <motion.section
-            id="contact"
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} transition={{ duration: 0.6 }}
-            className="scroll-mt-32"
-          >
+            <motion.section
+              id="contact"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.6 }}
+              className="scroll-mt-32"
+            >
             <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
               <h2 className="text-2xl font-bold mb-8">{t.contact.title}</h2>
               <ContactForm />
@@ -414,7 +410,7 @@ export default function Portfolio() {
               </p>
             </div>
           </motion.section>
-        )}
+        )
 
       </main>
 
