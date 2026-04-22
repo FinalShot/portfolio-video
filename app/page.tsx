@@ -11,7 +11,6 @@ import { translations } from "@/lib/translations";
 import type { Video } from "@/lib/videos";
 import Image from 'next/image';
 
-// --- CONFIGURATION ---
 const EXTERNAL_VIDEOS = [
   {
     title: "Marie Jo Lingerie – Paris",
@@ -63,7 +62,6 @@ const EXTERNAL_VIDEOS = [
   }
 ];
 
-// Map des catégories FR → clé de traduction
 const CATEGORY_KEYS: Record<string, keyof typeof translations["fr"]["categories"]> = {
   "TOUT": "all",
   "PUBS & BRAND CONTENT": "ads",
@@ -119,7 +117,6 @@ export default function Portfolio() {
     fetchVideos();
   }, []);
 
-  // Le filtre reste en clé FR (valeur interne), on affiche la traduction
   const filteredVideos = filter === "TOUT"
     ? videos
     : videos.filter(v => v.category === filter);
@@ -135,78 +132,50 @@ export default function Portfolio() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
 
-      {/* HEADER FIXE */}
+      {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
-          <div>
-           (
-              <h1
-                className="font-bold text-4xl tracking-[-0.005em] select-none cursor-pointer"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              >
-                JEAN LANOT
-              </h1>
-            ) : (
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="font-bold text-4xl tracking-[-0.005em] select-none cursor-pointer"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              >
-                JEAN LANOT
-              </motion.h1>
-            )
-          </div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="font-bold text-4xl tracking-[-0.005em] select-none cursor-pointer"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            JEAN LANOT
+          </motion.h1>
 
           <nav className="hidden md:flex items-center gap-8 text-base font-medium">
-            (
-              <>
-                <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gray-300 transition-colors">
-                  {t.nav.portfolio}
-                </button>
-                <button onClick={() => scrollTo('about')} className="hover:text-gray-300 transition-colors">
-                  {t.nav.about}
-                </button>
-                <button onClick={() => scrollTo('contact')} className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold">
-                  {t.nav.contact}
-                </button>
-                <LanguageToggle />
-              </>
-            ) : (
-              <>
-                <motion.button
-                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.08 }}
-                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  className="hover:text-gray-300 transition-colors"
-                >
-                  {t.nav.portfolio}
-                </motion.button>
-                <motion.button
-                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.12 }}
-                  onClick={() => scrollTo('about')}
-                  className="hover:text-gray-300 transition-colors"
-                >
-                  {t.nav.about}
-                </motion.button>
-                <motion.button
-                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.16 }}
-                  onClick={() => scrollTo('contact')}
-                  className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold"
-                >
-                  {t.nav.contact}
-                </motion.button>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.20 }}
-                >
-                  <LanguageToggle />
-                </motion.div>
-              </>
-            )
+            <motion.button
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.08 }}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="hover:text-gray-300 transition-colors"
+            >
+              {t.nav.portfolio}
+            </motion.button>
+            <motion.button
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.12 }}
+              onClick={() => scrollTo('about')}
+              className="hover:text-gray-300 transition-colors"
+            >
+              {t.nav.about}
+            </motion.button>
+            <motion.button
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.16 }}
+              onClick={() => scrollTo('contact')}
+              className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold"
+            >
+              {t.nav.contact}
+            </motion.button>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.20 }}
+            >
+              <LanguageToggle />
+            </motion.div>
           </nav>
 
           <button
@@ -269,19 +238,7 @@ export default function Portfolio() {
           <div className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start">
             {FR_CATEGORIES.map((cat, index) => {
               const label = t.categories[CATEGORY_KEYS[cat]];
-                (
-                <button
-                  key={cat}
-                  onClick={() => setFilter(cat)}
-                  className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border ${
-                    filter === cat
-                      ? "bg-white/90 text-black border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
-                      : "bg-white/5 backdrop-blur-md text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/30 hover:text-white shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
-                  }`}
-                >
-                  {label}
-                </button>
-              ) : (
+              return (
                 <motion.button
                   key={cat}
                   onClick={() => setFilter(cat)}
@@ -301,7 +258,7 @@ export default function Portfolio() {
           </div>
 
           {/* Grille Vidéo */}
-          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
             <AnimatePresence mode="popLayout">
               {filteredVideos.map((video, index) => (
                 <motion.div
@@ -309,7 +266,7 @@ export default function Portfolio() {
                   initial={{ opacity: 0, y: 24 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.3, delay: index < 6 ? index * 0.06 : 0, ease: "easeOut" }}
+                  transition={{ duration: 0.4, delay: index < 6 ? index * 0.06 : 0, ease: "easeOut" }}
                 >
                   <TiltCard
                     video={video}
@@ -323,7 +280,7 @@ export default function Portfolio() {
                 </motion.div>
               ))}
             </AnimatePresence>
-          </motion.div>
+          </div>
 
           {filteredVideos.length === 0 && !loading && (
             <div className="text-center py-20 text-gray-400">{t.noVideos}</div>
@@ -331,86 +288,51 @@ export default function Portfolio() {
         </section>
 
         {/* SECTION À PROPOS */}
-        (
-          <section id="about" className="mb-12 scroll-mt-32">
-            <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-              <div className="flex flex-col md:flex-row items-center gap-10">
-                <div className="shrink-0">
-                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
-                    <Image src="/ma-photo.webp" alt="Jean Lanot" width={160} height={160} className="w-full h-full object-cover" priority />
-                  </div>
-                </div>
-                <div className="text-center md:text-left">
-                  <h2 className="text-2xl font-bold mb-4">{t.about.title}</h2>
-                  <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
-                    {t.about.bio.split('\n').map((line, i) => (
-                      <React.Fragment key={i}>{line}{i < t.about.bio.split('\n').length - 1 && <br />}</React.Fragment>
-                    ))}
-                  </p>
+        <motion.section
+          id="about"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 0.6 }}
+          className="mb-12 scroll-mt-32"
+        >
+          <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+            <div className="flex flex-col md:flex-row items-center gap-10">
+              <div className="shrink-0">
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
+                  <Image src="/ma-photo.webp" alt="Jean Lanot" width={160} height={160} className="w-full h-full object-cover" priority />
                 </div>
               </div>
-            </div>
-          </section>
-        ) : (
-          <motion.section
-            id="about"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.6 }}
-            className="mb-12 scroll-mt-32"
-          >
-            <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-              <div className="flex flex-col md:flex-row items-center gap-10">
-                <div className="shrink-0">
-                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
-                    <Image src="/ma-photo.webp" alt="Jean Lanot" width={160} height={160} className="w-full h-full object-cover" priority />
-                  </div>
-                </div>
-                <div className="text-center md:text-left">
-                  <h2 className="text-2xl font-bold mb-4">{t.about.title}</h2>
-                  <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
-                    {t.about.bio.split('\n').map((line, i) => (
-                      <React.Fragment key={i}>{line}{i < t.about.bio.split('\n').length - 1 && <br />}</React.Fragment>
-                    ))}
-                  </p>
-                </div>
+              <div className="text-center md:text-left">
+                <h2 className="text-2xl font-bold mb-4">{t.about.title}</h2>
+                <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
+                  {t.about.bio.split('\n').map((line, i) => (
+                    <React.Fragment key={i}>{line}{i < t.about.bio.split('\n').length - 1 && <br />}</React.Fragment>
+                  ))}
+                </p>
               </div>
             </div>
-          </motion.section>
-        )
+          </div>
+        </motion.section>
 
         {/* SECTION CONTACT */}
-        (
-          <section id="contact" className="scroll-mt-32">
-            <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-              <h2 className="text-2xl font-bold mb-8">{t.contact.title}</h2>
-              <ContactForm />
-              <p className="mt-6 text-sm text-gray-400">
-                {t.contact.orEmail}{" "}
-                <a href="mailto:contact@jeanlanot.com" className="text-white hover:underline">contact@jeanlanot.com</a>
-              </p>
-            </div>
-          </section>
-        ) : (
-            <motion.section
-              id="contact"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.1 }}
-              transition={{ duration: 0.6 }}
-              className="scroll-mt-32"
-            >
-            <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-              <h2 className="text-2xl font-bold mb-8">{t.contact.title}</h2>
-              <ContactForm />
-              <p className="mt-6 text-sm text-gray-400">
-                {t.contact.orEmail}{" "}
-                <a href="mailto:contact@jeanlanot.com" className="text-white hover:underline">contact@jeanlanot.com</a>
-              </p>
-            </div>
-          </motion.section>
-        )
+        <motion.section
+          id="contact"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 0.6 }}
+          className="scroll-mt-32"
+        >
+          <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+            <h2 className="text-2xl font-bold mb-8">{t.contact.title}</h2>
+            <ContactForm />
+            <p className="mt-6 text-sm text-gray-400">
+              {t.contact.orEmail}{" "}
+              <a href="mailto:contact@jeanlanot.com" className="text-white hover:underline">contact@jeanlanot.com</a>
+            </p>
+          </div>
+        </motion.section>
 
       </main>
 
