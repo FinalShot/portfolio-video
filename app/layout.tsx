@@ -89,7 +89,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={`${inter.className} ${ubuntu.variable}`}>
-      <body className={`font-sans antialiased`}>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            document.documentElement.style.opacity = '0';
+            window.addEventListener('DOMContentLoaded', function() {
+              document.documentElement.style.opacity = '1';
+              document.documentElement.style.transition = 'opacity 0.2s ease';
+            });
+          `
+        }} />
+      </head>
+      <body className="font-sans antialiased">
         <StructuredData />
         <LangProvider>
           {children}
