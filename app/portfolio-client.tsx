@@ -51,7 +51,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const hasAnimatedRef = useRef(false);
-  const isGridReadyRef = useRef(false);
 
   useEffect(() => {
     hasAnimatedRef.current = true;
@@ -59,9 +58,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     // Durée totale du stagger = durée (0.4s) + delay de la dernière carte
     const lastIndex = Math.min(initialVideos.length - 1, 29); // max 30 cartes
     const totalMs = (0.4 + lastIndex * 0.04) * 1000;
-    const timer = setTimeout(() => {
-      isGridReadyRef.current = true;
-    }, totalMs);
 
     return () => clearTimeout(timer);
   }, [initialVideos.length]);
@@ -221,7 +217,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
                     transition={{
                       opacity: { duration: !hasAnimatedRef.current ? 0.4 : FADE_DURATION, ease: "easeOut", delay: !hasAnimatedRef.current ? index * 0.04 : 0 },
                       scale:   { duration: !hasAnimatedRef.current ? 0.4 : FADE_DURATION, ease: "easeOut", delay: !hasAnimatedRef.current ? index * 0.04 : 0 },
-                      layout:  { ...LAYOUT_SPRING, delay: isGridReadyRef.current ? 0 : (0.4 + Math.min(index, 29) * 0.04) },
+                      layout:  LAYOUT_SPRING,
                     }}
                     style={safariGpuStyle}
                   >
