@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { Mail, Menu, X, Linkedin, Instagram } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
@@ -72,6 +72,10 @@ const CATEGORY_KEYS: Record<string, keyof typeof translations["fr"]["categories"
 
 const FR_CATEGORIES = ["TOUT", "PUBS & BRAND CONTENT", "EMISSIONS & DOCS", "BANDES-ANNONCES", "FICTIONS"];
 
+// Durées d'animation centralisées
+const FADE_DURATION = 0.25;
+const LAYOUT_SPRING = { type: "spring" as const, stiffness: 400, damping: 35 };
+
 export default function Portfolio() {
   const { lang } = useLang();
   const t = translations[lang];
@@ -80,6 +84,7 @@ export default function Portfolio() {
   const [filter, setFilter] = useState("TOUT");
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const hasMounted = useRef(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -112,10 +117,15 @@ export default function Portfolio() {
         console.error("Erreur:", error);
       } finally {
         setLoading(false);
+        hasMounted.current = true;
       }
     }
     fetchVideos();
   }, []);
+
+  const filteredVideos = filter === "TOUT"
+    ? videos
+    : videos.filter(v => v.category === filter);
 
   const scrollTo = (id: string) => {
     const element = document.getElementById(id);
@@ -125,6 +135,14 @@ export default function Portfolio() {
     }
   };
 
+  // Fix Safari : style GPU forcé inline sur chaque élément animé
+  const safariGpuStyle: React.CSSProperties = {
+    WebkitTransform: "translateZ(0)",
+    transform: "translateZ(0)",
+    WebkitBackfaceVisibility: "hidden",
+    backfaceVisibility: "hidden",
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
 
@@ -132,10 +150,17 @@ export default function Portfolio() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
 
+          {/*
+            Fix Safari : on utilise animate uniquement, sans initial,
+            pour éviter que Safari rejoue l'animation au moindre re-render.
+            La valeur de départ est définie via CSS (opacity-0 translate-y-5)
+            et Framer Motion anime vers l'état final.
+          */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            style={safariGpuStyle}
             className="font-bold text-4xl tracking-[-0.005em] select-none cursor-pointer"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
@@ -143,33 +168,28 @@ export default function Portfolio() {
           </motion.h1>
 
           <nav className="hidden md:flex items-center gap-8 text-base font-medium">
-            <motion.button
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.08 }}
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="hover:text-gray-300 transition-colors"
-            >
-              {t.nav.portfolio}
-            </motion.button>
-            <motion.button
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.12 }}
-              onClick={() => scrollTo('about')}
-              className="hover:text-gray-300 transition-colors"
-            >
-              {t.nav.about}
-            </motion.button>
-            <motion.button
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.16 }}
-              onClick={() => scrollTo('contact')}
-              className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold"
-            >
-              {t.nav.contact}
-            </motion.button>
+            {[
+              { label: t.nav.portfolio, action: () => window.scrollTo({ top: 0, behavior: 'smooth' }), delay: 0.08, className: "hover:text-gray-300 transition-colors" },
+              { label: t.nav.about, action: () => scrollTo('about'), delay: 0.12, className: "hover:text-gray-300 transition-colors" },
+              { label: t.nav.contact, action: () => scrollTo('contact'), delay: 0.16, className: "bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold" },
+            ].map(({ label, action, delay, className }) => (
+              <motion.button
+                key={label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay, ease: "easeOut" }}
+                style={safariGpuStyle}
+                onClick={action}
+                className={className}
+              >
+                {label}
+              </motion.button>
+            ))}
             <motion.div
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.20 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.20, ease: "easeOut" }}
+              style={safariGpuStyle}
             >
               <LanguageToggle />
             </motion.div>
@@ -197,6 +217,7 @@ export default function Portfolio() {
             <motion.nav
               initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              style={safariGpuStyle}
               className="absolute top-0 right-0 h-full w-64 bg-[#0a0a0a] border-l border-white/10 pt-24 px-6"
             >
               <div className="flex flex-col gap-6">
@@ -243,6 +264,7 @@ export default function Portfolio() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 + index * 0.07, ease: "easeOut" }}
+                  style={safariGpuStyle}
                   className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border ${
                     filter === cat
                       ? "bg-white/90 text-black border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
@@ -255,39 +277,37 @@ export default function Portfolio() {
             })}
           </div>
 
-          {/* Grille Vidéo — layout FLIP via LayoutGroup, pas de re-mount */}
-          <LayoutGroup>
-            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
-              {videos.map((video) => {
-                const isVisible = filter === "TOUT" || video.category === filter;
-                return (
+          {/*
+            GRILLE — Logique d'animation au changement de filtre :
+            - Les cartes exclues font exit: fade out + scale down (AnimatePresence)
+            - Les cartes incluses font enter: fade in + scale up
+            - Les cartes qui restaient déjà visibles se déplacent via layout (FLIP)
+            
+            Fix Safari :
+            - AnimatePresence sans mode="popLayout" (buggé sur Safari)
+            - layout="position" au lieu de layout=true (plus stable sur WebKit)
+            - safariGpuStyle appliqué inline sur chaque card
+          */}
+          <LayoutGroup id="portfolio-grid">
+            <motion.div
+              layout="position"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12"
+              transition={LAYOUT_SPRING}
+            >
+              <AnimatePresence initial={false}>
+                {filteredVideos.map((video) => (
                   <motion.div
                     key={video.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{
-                      opacity: isVisible ? 1 : 0,
-                      scale: isVisible ? 1 : 0.95,
-                      pointerEvents: isVisible ? "auto" : "none",
-                    }}
+                    layout="position"
+                    initial={{ opacity: 0, scale: 0.92 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.92 }}
                     transition={{
-                      layout: {
-                        type: "spring",
-                        stiffness: 350,
-                        damping: 30,
-                      },
-                      opacity: { duration: 0.3, ease: "easeInOut" },
-                      scale: { duration: 0.3, ease: "easeInOut" },
+                      opacity: { duration: FADE_DURATION, ease: "easeInOut" },
+                      scale: { duration: FADE_DURATION, ease: "easeInOut" },
+                      layout: LAYOUT_SPRING,
                     }}
-                    style={{
-                      // Safari GPU acceleration fixes
-                      WebkitTransform: "translateZ(0)",
-                      backfaceVisibility: "hidden",
-                      WebkitBackfaceVisibility: "hidden",
-                      // Cache les cartes exclues sans les retirer du flux (nécessaire pour le layout FLIP)
-                      visibility: isVisible ? "visible" : "hidden",
-                    }}
-                    aria-hidden={!isVisible}
+                    style={safariGpuStyle}
                   >
                     <TiltCard
                       video={video}
@@ -299,12 +319,12 @@ export default function Portfolio() {
                       }}
                     />
                   </motion.div>
-                );
-              })}
+                ))}
+              </AnimatePresence>
             </motion.div>
           </LayoutGroup>
 
-          {videos.filter(v => filter === "TOUT" || v.category === filter).length === 0 && !loading && (
+          {filteredVideos.length === 0 && !loading && (
             <div className="text-center py-20 text-gray-400">{t.noVideos}</div>
           )}
         </section>
@@ -315,7 +335,8 @@ export default function Portfolio() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          style={safariGpuStyle}
           className="mb-12 scroll-mt-32"
         >
           <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
@@ -343,7 +364,8 @@ export default function Portfolio() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          style={safariGpuStyle}
           className="scroll-mt-32"
         >
           <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 text-center shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
