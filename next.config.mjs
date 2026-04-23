@@ -8,25 +8,15 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 31536000,
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'i.ytimg.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'i.vimeocdn.com',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.cdninstagram.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-      },
+      { protocol: 'https', hostname: 'i.ytimg.com' },
+      { protocol: 'https', hostname: 'i.vimeocdn.com' },
+      { protocol: 'https', hostname: '**.cdninstagram.com' },
+      { protocol: 'https', hostname: 'placehold.co' },
+      { protocol: 'https', hostname: 'vumbnail.com' },
     ],
   },
 
+  // Turbopack config
   turbopack: {
     root: process.cwd(),
   },
@@ -36,23 +26,24 @@ const nextConfig = {
       {
         source: '/_next/static/:path*',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
       {
         source: '/thumbnails/:path*',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=2592000, stale-while-revalidate=86400',
-          },
+          { key: 'Cache-Control', value: 'public, max-age=2592000, stale-while-revalidate=86400' },
         ],
       },
-    ]
+      // Cache the API response au niveau CDN Vercel
+      {
+        source: '/api/youtube',
+        headers: [
+          { key: 'Cache-Control', value: 'public, s-maxage=3600, stale-while-revalidate=86400' },
+        ],
+      },
+    ];
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

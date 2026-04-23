@@ -2,6 +2,7 @@ import React from "react"
 import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { cookies } from 'next/headers'
 import './globals.css'
 import { StructuredData } from '@/components/structured-data'
 import { Inter } from 'next/font/google'
@@ -11,6 +12,7 @@ import { LangProvider } from '@/lib/lang-context'
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
+  variable: '--font-inter',   // ← ajout de variable pour pouvoir l'utiliser en CSS
   preload: true,
 })
 
@@ -29,7 +31,7 @@ export const metadata: Metadata = {
     default: 'Jean Lanot | Monteur vidéo',
     template: '%s | Jean Lanot'
   },
-  description: 'Monteur vidéo professionnel basé à Paris avec plus de 9 ans d\'expérience. Spécialisé dans les pubs, documentaires, bandes-annonces et contenus broadcast pour chaînes de télévision, agences et productions.',
+  description: "Monteur vidéo professionnel basé à Paris avec plus de 9 ans d'expérience. Spécialisé dans les pubs, documentaires, bandes-annonces et contenus broadcast pour chaînes de télévision, agences et productions.",
   keywords: ['monteur vidéo', 'éditeur vidéo', 'montage vidéo Paris', 'post-production', 'Jean Lanot', 'vidéo professionnelle', 'télévision', 'publicité', 'documentaire', 'adobe', 'premiere pro', 'after effects', 'montage', 'vidéo', 'animation', 'sous-titres', 'motion design', 'motion'],
   authors: [{ name: 'Jean Lanot' }],
   creator: 'Jean Lanot',
@@ -37,7 +39,9 @@ export const metadata: Metadata = {
   generator: 'Next.js',
   openGraph: {
     type: 'website',
+    // locale dynamique gérée par la page elle-même si besoin
     locale: 'fr_FR',
+    alternateLocale: ['en_US'],   // ← annonce la version EN à Facebook/OG
     url: siteUrl,
     title: 'Jean Lanot | Monteur vidéo',
     description: 'Portfolio de montage vidéo - Pubs, documentaires, fictions',
@@ -58,8 +62,14 @@ export const metadata: Metadata = {
     images: ['/og-image.jpg'],
     creator: '@jeanlanot',
   },
+  // ← hreflang : indique à Google les deux versions linguistiques
   alternates: {
     canonical: 'https://jeanlanot.com',
+    languages: {
+      'fr': 'https://jeanlanot.com',
+      'en': 'https://jeanlanot.com',
+      'x-default': 'https://jeanlanot.com',
+    },
   },
   robots: {
     index: true,
@@ -82,16 +92,21 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // ← Lecture du cookie côté serveur pour le lang dans <html lang="">
+  // Aucun flash : la valeur est connue avant le premier paint.
+  const cookieStore = await cookies()
+  const lang = cookieStore.get('lang')?.value === 'en' ? 'en' : 'fr'
+
   return (
-    <html lang="fr" className={`${inter.className} ${ubuntu.variable}`}>
+    <html lang={lang} className={`${inter.variable} ${ubuntu.variable}`}>
       <body className="font-sans antialiased">
         <StructuredData />
-        <LangProvider>
+        <LangProvider initialLang={lang}>
           {children}
         </LangProvider>
         <Analytics />

@@ -75,7 +75,6 @@ const FR_CATEGORIES = ["TOUT", "PUBS & BRAND CONTENT", "EMISSIONS & DOCS", "BAND
 const FADE_DURATION = 0.25;
 const LAYOUT_SPRING = { type: "spring" as const, stiffness: 400, damping: 35 };
 
-// Objets initial figés en dehors du composant — jamais recréés entre les renders
 const ANIM_INITIAL = { opacity: 0, y: 20 } as const;
 const ANIM_ANIMATE = { opacity: 1, y: 0 } as const;
 const ANIM_INITIAL_SCALE = { opacity: 0, scale: 0.92 } as const;
@@ -91,9 +90,6 @@ export default function Portfolio() {
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // useRef au lieu de useState : ne déclenche AUCUN re-render quand il change.
-  // Sa valeur reste figée à "false" côté SSR, puis passe à "true" une seule fois
-  // après le montage — et ne change plus jamais.
   const hasAnimatedRef = useRef(false);
 
   useEffect(() => {
@@ -121,6 +117,8 @@ export default function Portfolio() {
           aspectRatio: vid.aspectRatio,
         }));
 
+        // ← Le tri est fait une seule fois ici (l'API le retourne déjà trié,
+        //   mais on re-trie après merge avec EXTERNAL_VIDEOS)
         const allVideos = [...youtubeVideos, ...formattedExternalVideos];
         allVideos.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
         setVideos(allVideos);
@@ -152,18 +150,12 @@ export default function Portfolio() {
     backfaceVisibility: "hidden",
   };
 
-  // Clés stables indépendantes du texte traduit
   const NAV_ITEMS = [
     { id: "nav-portfolio", label: t.nav.portfolio, action: () => window.scrollTo({ top: 0, behavior: 'smooth' }), delay: 0.08, className: "hover:text-gray-300 transition-colors" },
     { id: "nav-about",     label: t.nav.about,     action: () => scrollTo('about'),   delay: 0.12, className: "hover:text-gray-300 transition-colors" },
     { id: "nav-contact",   label: t.nav.contact,   action: () => scrollTo('contact'), delay: 0.16, className: "bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold" },
   ];
 
-  // hasAnimatedRef.current est lu au moment du render — si false (premier render SSR/hydration),
-  // initial={false} → pas d'animation. Si true (après montage), initial=ANIM_INITIAL → animation.
-  // Comme c'est un ref et non un state, le changement ref.current = true (dans useEffect)
-  // ne provoque PAS de re-render → les éléments gardent initial=false lors du premier paint.
-  // L'animation ne joue qu'une seule fois : au prochain render causé par setVideos/setLoading.
   const headerInitial = hasAnimatedRef.current ? false : ANIM_INITIAL;
 
   return (
@@ -298,7 +290,7 @@ export default function Portfolio() {
               transition={LAYOUT_SPRING}
             >
               <AnimatePresence initial={false}>
-                {filteredVideos.map((video) => (
+                {filteredVideos.map((video, index) => (
                   <motion.div
                     key={video.id}
                     layout="position"
@@ -314,6 +306,9 @@ export default function Portfolio() {
                   >
                     <TiltCard
                       video={video}
+                      // ← priority sur les 3 premières cartes visibles → LCP amélioré
+                      priority={index < 3}
+                      index={index}
                       onClick={() => {
                         const url = video.youtubeId
                           ? `https://www.youtube.com/watch?v=${video.youtubeId}`

@@ -13,24 +13,36 @@ const LangContext = createContext<LangContextType>({
   setLang: () => {},
 });
 
-export function LangProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("fr");
+interface LangProviderProps {
+  children: React.ReactNode;
+  // ← reçu depuis le layout server (lu via cookie) pour éviter tout flash
+  initialLang?: Lang;
+}
+
+export function LangProvider({ children, initialLang = "fr" }: LangProviderProps) {
+  const [lang, setLangState] = useState<Lang>(initialLang);
 
   useEffect(() => {
-    // 1. Check localStorage (manuel)
+    // Vérification unique après hydratation :
+    // si un cookie ou localStorage diffère de l'initial, on synchro.
     const stored = localStorage.getItem("lang") as Lang | null;
     if (stored === "fr" || stored === "en") {
       setLangState(stored);
       return;
     }
-    // 2. Detect browser language
+    // Détection navigateur uniquement si aucun cookie ni localStorage
     const browserLang = navigator.language.slice(0, 2).toLowerCase();
-    setLangState(browserLang === "fr" ? "fr" : "en");
-  }, []);
+    const detected: Lang = browserLang === "fr" ? "fr" : "en";
+    if (detected !== initialLang) {
+      setLangState(detected);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setLang = (l: Lang) => {
     setLangState(l);
     localStorage.setItem("lang", l);
+    // ← Écrit aussi un cookie lisible côté serveur (layout)
+    document.cookie = `lang=${l}; path=/; max-age=31536000; SameSite=Lax`;
   };
 
   return (
