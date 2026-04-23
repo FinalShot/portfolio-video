@@ -50,15 +50,15 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const [filter, setFilter]               = useState("TOUT");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const hasAnimatedRef = useRef(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    hasAnimatedRef.current = true;
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-    // Durée totale du stagger = durée (0.4s) + delay de la dernière carte
-    const lastIndex = Math.min(initialVideos.length - 1, 29); // max 30 cartes
+    const lastIndex = Math.min(initialVideos.length - 1, 29);
     const totalMs = (0.4 + lastIndex * 0.04) * 1000;
-  },[]);
+    const timer = setTimeout(() => setHasAnimated(true), totalMs);
+    return () => clearTimeout(timer);
+  }, [initialVideos.length]);
 
   const filteredVideos =
     filter === "TOUT"
@@ -85,7 +85,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     { id: "nav-contact",   label: t.nav.contact,   action: () => scrollTo("contact"), delay: 0.16, className: "bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold" },
   ];
 
-  const headerInitial = hasAnimatedRef.current ? false : ANIM_INITIAL;
+  const headerInitial = hasAnimated ? false : ANIM_INITIAL;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
@@ -204,7 +204,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12"
               transition={LAYOUT_SPRING}
             >
-              <AnimatePresence>
+            <AnimatePresence initial={!hasAnimated}>
                 {filteredVideos.map((video, index) => (
                   <motion.div
                     key={video.id}
@@ -213,8 +213,8 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
                     animate={ANIM_ANIMATE_SCALE}
                     exit={ANIM_EXIT_SCALE}
                     transition={{
-                      opacity: { duration: !hasAnimatedRef.current ? 0.4 : FADE_DURATION, ease: "easeOut", delay: !hasAnimatedRef.current ? index * 0.04 : 0 },
-                      scale:   { duration: !hasAnimatedRef.current ? 0.4 : FADE_DURATION, ease: "easeOut", delay: !hasAnimatedRef.current ? index * 0.04 : 0 },
+                      opacity: { duration: !hasAnimated ? 0.4 : FADE_DURATION, ease: "easeOut", delay: !hasAnimated ? index * 0.04 : 0 },
+                      scale:   { duration: !hasAnimated ? 0.4 : FADE_DURATION, ease: "easeOut", delay: !hasAnimated ? index * 0.04 : 0 },
                       layout:  LAYOUT_SPRING,
                     }}
                     style={safariGpuStyle}
