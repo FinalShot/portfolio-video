@@ -22,7 +22,7 @@ const EXTERNAL_VIDEOS = [
   },
   {
     title: "TF1 - Kev Adams Le Before",
-    thumbnailUrl: "https://i.vimeocdn.com/video/1.748333621e+09-6556ab122d6d8571b0f94d1c4e33b94928a32adcf1a4ab6f80959c79b258aba2-d_640",
+    thumbnailUrl: "https://vumbnail.com/881022565.jpg",
     videoUrl: "https://vimeo.com/881022565",
     category: "FICTIONS" as const,
     date: "2023-11-03",
@@ -72,7 +72,6 @@ const CATEGORY_KEYS: Record<string, keyof typeof translations["fr"]["categories"
 
 const FR_CATEGORIES = ["TOUT", "PUBS & BRAND CONTENT", "EMISSIONS & DOCS", "BANDES-ANNONCES", "FICTIONS"];
 
-// Durées d'animation centralisées
 const FADE_DURATION = 0.25;
 const LAYOUT_SPRING = { type: "spring" as const, stiffness: 400, damping: 35 };
 
@@ -84,9 +83,10 @@ export default function Portfolio() {
   const [filter, setFilter] = useState("TOUT");
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const hasMounted = useRef(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   }, []);
 
@@ -117,7 +117,6 @@ export default function Portfolio() {
         console.error("Erreur:", error);
       } finally {
         setLoading(false);
-        hasMounted.current = true;
       }
     }
     fetchVideos();
@@ -135,13 +134,19 @@ export default function Portfolio() {
     }
   };
 
-  // Fix Safari : style GPU forcé inline sur chaque élément animé
   const safariGpuStyle: React.CSSProperties = {
     WebkitTransform: "translateZ(0)",
     transform: "translateZ(0)",
     WebkitBackfaceVisibility: "hidden",
     backfaceVisibility: "hidden",
   };
+
+  // Clés stables pour les boutons nav (indépendantes du texte traduit)
+  const NAV_ITEMS = [
+    { id: "nav-portfolio", label: t.nav.portfolio, action: () => window.scrollTo({ top: 0, behavior: 'smooth' }), delay: 0.08, className: "hover:text-gray-300 transition-colors" },
+    { id: "nav-about",     label: t.nav.about,     action: () => scrollTo('about'),   delay: 0.12, className: "hover:text-gray-300 transition-colors" },
+    { id: "nav-contact",   label: t.nav.contact,   action: () => scrollTo('contact'), delay: 0.16, className: "bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold" },
+  ];
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
@@ -150,14 +155,8 @@ export default function Portfolio() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
 
-          {/*
-            Fix Safari : on utilise animate uniquement, sans initial,
-            pour éviter que Safari rejoue l'animation au moindre re-render.
-            La valeur de départ est définie via CSS (opacity-0 translate-y-5)
-            et Framer Motion anime vers l'état final.
-          */}
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={isMounted ? { opacity: 0, y: 20 } : false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
             style={safariGpuStyle}
@@ -168,14 +167,10 @@ export default function Portfolio() {
           </motion.h1>
 
           <nav className="hidden md:flex items-center gap-8 text-base font-medium">
-            {[
-              { label: t.nav.portfolio, action: () => window.scrollTo({ top: 0, behavior: 'smooth' }), delay: 0.08, className: "hover:text-gray-300 transition-colors" },
-              { label: t.nav.about, action: () => scrollTo('about'), delay: 0.12, className: "hover:text-gray-300 transition-colors" },
-              { label: t.nav.contact, action: () => scrollTo('contact'), delay: 0.16, className: "bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold" },
-            ].map(({ label, action, delay, className }) => (
+            {NAV_ITEMS.map(({ id, label, action, delay, className }) => (
               <motion.button
-                key={label}
-                initial={{ opacity: 0, y: 20 }}
+                key={id}
+                initial={isMounted ? { opacity: 0, y: 20 } : false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay, ease: "easeOut" }}
                 style={safariGpuStyle}
@@ -186,7 +181,7 @@ export default function Portfolio() {
               </motion.button>
             ))}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={isMounted ? { opacity: 0, y: 20 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.20, ease: "easeOut" }}
               style={safariGpuStyle}
@@ -259,9 +254,9 @@ export default function Portfolio() {
               const label = t.categories[CATEGORY_KEYS[cat]];
               return (
                 <motion.button
-                  key={cat}
+                  key={`filter-${cat}`}
                   onClick={() => setFilter(cat)}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={isMounted ? { opacity: 0, y: 20 } : false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 + index * 0.07, ease: "easeOut" }}
                   style={safariGpuStyle}
@@ -277,17 +272,7 @@ export default function Portfolio() {
             })}
           </div>
 
-          {/*
-            GRILLE — Logique d'animation au changement de filtre :
-            - Les cartes exclues font exit: fade out + scale down (AnimatePresence)
-            - Les cartes incluses font enter: fade in + scale up
-            - Les cartes qui restaient déjà visibles se déplacent via layout (FLIP)
-            
-            Fix Safari :
-            - AnimatePresence sans mode="popLayout" (buggé sur Safari)
-            - layout="position" au lieu de layout=true (plus stable sur WebKit)
-            - safariGpuStyle appliqué inline sur chaque card
-          */}
+          {/* Grille Vidéo */}
           <LayoutGroup id="portfolio-grid">
             <motion.div
               layout="position"
