@@ -201,7 +201,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12"
               transition={LAYOUT_SPRING}
             >
-              <AnimatePresence initial={false}>
+              <AnimatePresence>
                 {filteredVideos.map((video, index) => (
                   <motion.div
                     key={video.id}
@@ -210,8 +210,8 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
                     animate={ANIM_ANIMATE_SCALE}
                     exit={ANIM_EXIT_SCALE}
                     transition={{
-                      opacity: { duration: FADE_DURATION, ease: "easeInOut" },
-                      scale:   { duration: FADE_DURATION, ease: "easeInOut" },
+                      opacity: { duration: 0.4, ease: "easeOut", delay: !hasAnimatedRef.current ? index * 0.04 : 0 },
+                      scale:   { duration: 0.4, ease: "easeOut", delay: !hasAnimatedRef.current ? index * 0.04 : 0 },
                       layout:  LAYOUT_SPRING,
                     }}
                     style={safariGpuStyle}
