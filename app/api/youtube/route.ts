@@ -34,8 +34,6 @@ async function fetchPlaylist(
     url.searchParams.set("key", apiKey);
 
     const res = await fetch(url.toString(), {
-      // ← Cache natif Next.js : revalidation toutes les heures côté serveur
-      // Fonctionne en serverless sans dépendre d'un Map en mémoire
       next: { revalidate: 3600 },
     });
 
@@ -70,6 +68,8 @@ async function fetchPlaylist(
   }
 }
 
+// Cette route reste disponible comme endpoint de refresh/fallback.
+// Le fetch principal est désormais dans app/page.tsx (Server Component).
 export async function GET(request: NextRequest) {
   try {
     const ip = getClientIp(request);
@@ -97,9 +97,8 @@ export async function GET(request: NextRequest) {
       )
     );
 
-    const allVideos = results.flat();
-    // Tri unique ici (supprimé dans page.tsx)
-    allVideos.sort(
+    // Tri unique — une seule fois ici, plus de double tri
+    const allVideos = results.flat().sort(
       (a, b) =>
         new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
     );
@@ -108,7 +107,6 @@ export async function GET(request: NextRequest) {
       { videos: allVideos },
       {
         headers: {
-          // ← s-maxage pour le CDN Vercel Edge, stale-while-revalidate pour la fluidité
           "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
         },
       }
