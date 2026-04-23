@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { Mail, Menu, X, Linkedin, Instagram } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { TiltCard } from "@/components/tilt-card";
@@ -13,7 +13,7 @@ import Image from 'next/image';
 
 const EXTERNAL_VIDEOS = [
   {
-    title: "Marie Jo Lingerie \u2013 Paris",
+    title: "Marie Jo Lingerie – Paris",
     thumbnailUrl: "/thumbnails/marie-jo.jpg",
     videoUrl: "https://www.instagram.com/reels/DV5wdySiJWf/",
     category: "PUBS & BRAND CONTENT" as const,
@@ -22,7 +22,7 @@ const EXTERNAL_VIDEOS = [
   },
   {
     title: "TF1 - Kev Adams Le Before",
-    thumbnailUrl: "https://i.vimeocdn.com/video/1748333621-6556ab122d6d8571b0f94d1c4e33b94928a32adcf1a4ab6f80959c79b258aba2-d_640",
+    thumbnailUrl: "https://i.vimeocdn.com/video/1.748333621e+09-6556ab122d6d8571b0f94d1c4e33b94928a32adcf1a4ab6f80959c79b258aba2-d_640",
     videoUrl: "https://vimeo.com/881022565",
     category: "FICTIONS" as const,
     date: "2023-11-03",
@@ -53,7 +53,7 @@ const EXTERNAL_VIDEOS = [
     aspectRatio: "landscape" as const,
   },
   {
-    title: "Air Cara\u00efbes",
+    title: "Air Caraïbes",
     thumbnailUrl: "/thumbnails/aircaraibes.jpg",
     videoUrl: "https://www.instagram.com/reels/DSQSfXVEUmW/",
     category: "PUBS & BRAND CONTENT" as const,
@@ -80,10 +80,6 @@ export default function Portfolio() {
   const [filter, setFilter] = useState("TOUT");
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [gridReady, setGridReady] = useState(false);
-  // filterKey changes on every filter click to force re-mount of all cards
-  const filterKeyRef = useRef(0);
-  const [filterKey, setFilterKey] = useState(0);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -120,24 +116,6 @@ export default function Portfolio() {
     }
     fetchVideos();
   }, []);
-
-  // Trigger initial grid stagger once videos are ready
-  useEffect(() => {
-    if (!loading && videos.length > 0) {
-      const timer = setTimeout(() => setGridReady(true), 100);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, videos]);
-
-  const handleFilterChange = (cat: string) => {
-    setFilter(cat);
-    filterKeyRef.current += 1;
-    setFilterKey(filterKeyRef.current);
-  };
-
-  const filteredVideos = filter === "TOUT"
-    ? videos
-    : videos.filter(v => v.category === filter);
 
   const scrollTo = (id: string) => {
     const element = document.getElementById(id);
@@ -261,7 +239,7 @@ export default function Portfolio() {
               return (
                 <motion.button
                   key={cat}
-                  onClick={() => handleFilterChange(cat)}
+                  onClick={() => setFilter(cat)}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 + index * 0.07, ease: "easeOut" }}
@@ -277,42 +255,61 @@ export default function Portfolio() {
             })}
           </div>
 
-          {/* Grille Vid\u00e9o */}
-          {/* filterKey force le re-mount de toutes les cards au changement de filtre */}
-          <div key={filterKey} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
-            <AnimatePresence mode="popLayout">
-              {filteredVideos.map((video, index) => (
-                <motion.div
-                  key={video.id}
-                  initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{
-                    duration: 0.4,
-                    delay: index < 9 ? index * 0.05 : 0,
-                    ease: "easeOut",
-                  }}
-                >
-                  <TiltCard
-                    video={video}
-                    onClick={() => {
-                      const url = video.youtubeId
-                        ? `https://www.youtube.com/watch?v=${video.youtubeId}`
-                        : video.videoUrl || '';
-                      if (url) window.open(url, '_blank', 'noopener,noreferrer');
+          {/* Grille Vidéo — layout FLIP via LayoutGroup, pas de re-mount */}
+          <LayoutGroup>
+            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
+              {videos.map((video) => {
+                const isVisible = filter === "TOUT" || video.category === filter;
+                return (
+                  <motion.div
+                    key={video.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{
+                      opacity: isVisible ? 1 : 0,
+                      scale: isVisible ? 1 : 0.95,
+                      pointerEvents: isVisible ? "auto" : "none",
                     }}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
+                    transition={{
+                      layout: {
+                        type: "spring",
+                        stiffness: 350,
+                        damping: 30,
+                      },
+                      opacity: { duration: 0.3, ease: "easeInOut" },
+                      scale: { duration: 0.3, ease: "easeInOut" },
+                    }}
+                    style={{
+                      // Safari GPU acceleration fixes
+                      WebkitTransform: "translateZ(0)",
+                      backfaceVisibility: "hidden",
+                      WebkitBackfaceVisibility: "hidden",
+                      // Cache les cartes exclues sans les retirer du flux (nécessaire pour le layout FLIP)
+                      visibility: isVisible ? "visible" : "hidden",
+                    }}
+                    aria-hidden={!isVisible}
+                  >
+                    <TiltCard
+                      video={video}
+                      onClick={() => {
+                        const url = video.youtubeId
+                          ? `https://www.youtube.com/watch?v=${video.youtubeId}`
+                          : video.videoUrl || '';
+                        if (url) window.open(url, '_blank', 'noopener,noreferrer');
+                      }}
+                    />
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </LayoutGroup>
 
-          {filteredVideos.length === 0 && !loading && (
+          {videos.filter(v => filter === "TOUT" || v.category === filter).length === 0 && !loading && (
             <div className="text-center py-20 text-gray-400">{t.noVideos}</div>
           )}
         </section>
 
-        {/* SECTION \u00c0 PROPOS */}
+        {/* SECTION À PROPOS */}
         <motion.section
           id="about"
           initial={{ opacity: 0, y: 20 }}
