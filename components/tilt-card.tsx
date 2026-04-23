@@ -12,7 +12,6 @@ import type { Video } from "@/lib/videos";
 import { Play } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 
-// ← Défini une seule fois hors du composant → jamais recréé entre les renders
 const CATEGORY_LABELS: Record<string, { fr: string; en: string }> = {
   "PUBS & BRAND CONTENT": { fr: "PUBS & BRAND CONTENT", en: "ADS & BRAND CONTENT" },
   "EMISSIONS & DOCS":     { fr: "ÉMISSIONS & DOCS",     en: "SHOWS & DOCS" },
@@ -23,7 +22,6 @@ const CATEGORY_LABELS: Record<string, { fr: string; en: string }> = {
 interface TiltCardProps {
   video: Video;
   onClick?: () => void;
-  // ← Les 3 premières cartes (above the fold) passent priority=true → LCP amélioré
   priority?: boolean;
   index?: number;
 }
@@ -31,34 +29,32 @@ interface TiltCardProps {
 export function TiltCard({ video, onClick, priority = false }: TiltCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  // ← Détection touch : désactive les springs 3D sur mobile/Safari iOS
   const [isTouch, setIsTouch] = useState(false);
+  const { lang } = useLang();
 
   useEffect(() => {
     setIsTouch(window.matchMedia("(hover: none)").matches);
   }, []);
 
+  // On passe TOUJOURS un MotionValue à useSpring — jamais un number brut.
+  // Pour désactiver le tilt sur touch, on gèle x/y à 0.5 dans handleMouseMove.
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
-  const { lang } = useLang();
 
-  // ← Springs désactivés sur touch (économise 6 motion values × nb cartes)
+  // rotateXBase / rotateYBase sont toujours des MotionValue<number>
   const rotateXBase = useTransform(y, [0, 1], [6, -6]);
   const rotateYBase = useTransform(x, [0, 1], [-6, 6]);
-  const rotateX = useSpring(isTouch ? 0 : rotateXBase, {
-    stiffness: 300,
-    damping: 30,
-  });
-  const rotateY = useSpring(isTouch ? 0 : rotateYBase, {
-    stiffness: 300,
-    damping: 30,
-  });
+
+  // useSpring reçoit toujours un MotionValue → plus d'erreur TypeScript
+  const rotateX = useSpring(rotateXBase, { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(rotateYBase, { stiffness: 300, damping: 30 });
 
   const glareX = useTransform(x, [0, 1], ["-50%", "150%"]);
   const glareY = useTransform(y, [0, 1], ["-50%", "150%"]);
   const background = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 20%, transparent 50%)`;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Sur touch : on ne met pas à jour x/y → les springs restent à 0 → pas de tilt
     if (isTouch || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     x.set((e.clientX - rect.left) / rect.width);
@@ -82,7 +78,6 @@ export function TiltCard({ video, onClick, priority = false }: TiltCardProps) {
         perspective: 1000,
         aspectRatio: "16 / 9",
         willChange: "transform",
-        // ← GPU layer explicite : force le compositing sur Safari
         WebkitTransform: "translateZ(0)",
         transform: "translateZ(0)",
         WebkitBackfaceVisibility: "hidden",
@@ -99,7 +94,8 @@ export function TiltCard({ video, onClick, priority = false }: TiltCardProps) {
           rotateX,
           rotateY,
           willChange: "transform",
-          WebkitTransform: isTouch ? "translateZ(0)" : undefined,
+          WebkitBackfaceVisibility: "hidden",
+          backfaceVisibility: "hidden",
         }}
       >
         {/* IMAGE */}
@@ -111,7 +107,6 @@ export function TiltCard({ video, onClick, priority = false }: TiltCardProps) {
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
             quality={85}
-            // ← priority sur les premières cartes pour le LCP
             priority={priority}
             loading={priority ? "eager" : "lazy"}
             placeholder="blur"
