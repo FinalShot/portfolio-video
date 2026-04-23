@@ -210,8 +210,8 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
                     animate={ANIM_ANIMATE_SCALE}
                     exit={ANIM_EXIT_SCALE}
                     transition={{
-                      opacity: { duration: 0.4, ease: "easeOut", delay: !hasAnimatedRef.current ? index * 0.04 : 0 },
-                      scale:   { duration: 0.4, ease: "easeOut", delay: !hasAnimatedRef.current ? index * 0.04 : 0 },
+                      opacity: { duration: !hasAnimatedRef.current ? 0.4 : FADE_DURATION, ease: "easeOut", delay: !hasAnimatedRef.current ? index * 0.04 : 0 },
+                      scale:   { duration: !hasAnimatedRef.current ? 0.4 : FADE_DURATION, ease: "easeOut", delay: !hasAnimatedRef.current ? index * 0.04 : 0 },
                       layout:  LAYOUT_SPRING,
                     }}
                     style={safariGpuStyle}
