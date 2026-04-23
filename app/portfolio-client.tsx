@@ -58,9 +58,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     // Durée totale du stagger = durée (0.4s) + delay de la dernière carte
     const lastIndex = Math.min(initialVideos.length - 1, 29); // max 30 cartes
     const totalMs = (0.4 + lastIndex * 0.04) * 1000;
-
-    return () => clearTimeout(timer);
-  }, [initialVideos.length]);
+  },[]);
 
   const filteredVideos =
     filter === "TOUT"
