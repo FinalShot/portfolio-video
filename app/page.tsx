@@ -75,6 +75,13 @@ const FR_CATEGORIES = ["TOUT", "PUBS & BRAND CONTENT", "EMISSIONS & DOCS", "BAND
 const FADE_DURATION = 0.25;
 const LAYOUT_SPRING = { type: "spring" as const, stiffness: 400, damping: 35 };
 
+// Objets initial figés en dehors du composant — jamais recréés entre les renders
+const ANIM_INITIAL = { opacity: 0, y: 20 } as const;
+const ANIM_ANIMATE = { opacity: 1, y: 0 } as const;
+const ANIM_INITIAL_SCALE = { opacity: 0, scale: 0.92 } as const;
+const ANIM_ANIMATE_SCALE = { opacity: 1, scale: 1 } as const;
+const ANIM_EXIT_SCALE = { opacity: 0, scale: 0.92 } as const;
+
 export default function Portfolio() {
   const { lang } = useLang();
   const t = translations[lang];
@@ -83,10 +90,14 @@ export default function Portfolio() {
   const [filter, setFilter] = useState("TOUT");
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+
+  // useRef au lieu de useState : ne déclenche AUCUN re-render quand il change.
+  // Sa valeur reste figée à "false" côté SSR, puis passe à "true" une seule fois
+  // après le montage — et ne change plus jamais.
+  const hasAnimatedRef = useRef(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    hasAnimatedRef.current = true;
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   }, []);
 
@@ -141,12 +152,19 @@ export default function Portfolio() {
     backfaceVisibility: "hidden",
   };
 
-  // Clés stables pour les boutons nav (indépendantes du texte traduit)
+  // Clés stables indépendantes du texte traduit
   const NAV_ITEMS = [
     { id: "nav-portfolio", label: t.nav.portfolio, action: () => window.scrollTo({ top: 0, behavior: 'smooth' }), delay: 0.08, className: "hover:text-gray-300 transition-colors" },
     { id: "nav-about",     label: t.nav.about,     action: () => scrollTo('about'),   delay: 0.12, className: "hover:text-gray-300 transition-colors" },
     { id: "nav-contact",   label: t.nav.contact,   action: () => scrollTo('contact'), delay: 0.16, className: "bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold" },
   ];
+
+  // hasAnimatedRef.current est lu au moment du render — si false (premier render SSR/hydration),
+  // initial={false} → pas d'animation. Si true (après montage), initial=ANIM_INITIAL → animation.
+  // Comme c'est un ref et non un state, le changement ref.current = true (dans useEffect)
+  // ne provoque PAS de re-render → les éléments gardent initial=false lors du premier paint.
+  // L'animation ne joue qu'une seule fois : au prochain render causé par setVideos/setLoading.
+  const headerInitial = hasAnimatedRef.current ? false : ANIM_INITIAL;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
@@ -156,8 +174,8 @@ export default function Portfolio() {
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
 
           <motion.h1
-            initial={isMounted ? { opacity: 0, y: 20 } : false}
-            animate={{ opacity: 1, y: 0 }}
+            initial={headerInitial}
+            animate={ANIM_ANIMATE}
             transition={{ duration: 0.6, ease: "easeOut" }}
             style={safariGpuStyle}
             className="font-bold text-4xl tracking-[-0.005em] select-none cursor-pointer"
@@ -170,8 +188,8 @@ export default function Portfolio() {
             {NAV_ITEMS.map(({ id, label, action, delay, className }) => (
               <motion.button
                 key={id}
-                initial={isMounted ? { opacity: 0, y: 20 } : false}
-                animate={{ opacity: 1, y: 0 }}
+                initial={headerInitial}
+                animate={ANIM_ANIMATE}
                 transition={{ duration: 0.6, delay, ease: "easeOut" }}
                 style={safariGpuStyle}
                 onClick={action}
@@ -181,8 +199,8 @@ export default function Portfolio() {
               </motion.button>
             ))}
             <motion.div
-              initial={isMounted ? { opacity: 0, y: 20 } : false}
-              animate={{ opacity: 1, y: 0 }}
+              initial={headerInitial}
+              animate={ANIM_ANIMATE}
               transition={{ duration: 0.6, delay: 0.20, ease: "easeOut" }}
               style={safariGpuStyle}
             >
@@ -256,8 +274,8 @@ export default function Portfolio() {
                 <motion.button
                   key={`filter-${cat}`}
                   onClick={() => setFilter(cat)}
-                  initial={isMounted ? { opacity: 0, y: 20 } : false}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={headerInitial}
+                  animate={ANIM_ANIMATE}
                   transition={{ duration: 0.5, delay: 0.2 + index * 0.07, ease: "easeOut" }}
                   style={safariGpuStyle}
                   className={`px-5 py-2 rounded-full text-xs font-bold tracking-wider border ${
@@ -284,9 +302,9 @@ export default function Portfolio() {
                   <motion.div
                     key={video.id}
                     layout="position"
-                    initial={{ opacity: 0, scale: 0.92 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.92 }}
+                    initial={ANIM_INITIAL_SCALE}
+                    animate={ANIM_ANIMATE_SCALE}
+                    exit={ANIM_EXIT_SCALE}
                     transition={{
                       opacity: { duration: FADE_DURATION, ease: "easeInOut" },
                       scale: { duration: FADE_DURATION, ease: "easeInOut" },
