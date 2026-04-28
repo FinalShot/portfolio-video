@@ -58,6 +58,27 @@ const EXTERNAL_VIDEOS = [
     category: "PUBS & BRAND CONTENT" as const,
     date: "2022-11-23",
   },
+{
+  title: "PSG x ALL",
+  thumbnailUrl: "/thumbnails/PSGxALL.jpeg",
+  videoUrl: "https://www.instagram.com/reels/DHYwrt1vUa3/",
+  category: "PUBS & BRAND CONTENT" as const,
+  date: "2025-03-19",
+},
+    {
+      title: "PSG x Yassir - Désiré Doué",
+      thumbnailUrl: "/thumbnails/YASSIRxPSG.jpeg",
+      videoUrl: "https://www.instagram.com/reels/DKuDGmltyLF/",
+      category: "PUBS & BRAND CONTENT" as const,
+      date: "2025-06-10",
+    },
+    {
+      title: "PSG x Visit Qatar - Paint me if you can",
+      thumbnailUrl: "/thumbnails/PSGxVQ.jpeg",
+      videoUrl: "https://www.instagram.com/reels/DLkjLk9tydR/",
+      category: "PUBS & BRAND CONTENT" as const,
+      date: "2025-07-01",
+    },
   {
     title: "Air Caraïbes",
     thumbnailUrl: "/thumbnails/aircaraibes.jpg",
