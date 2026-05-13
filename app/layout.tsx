@@ -29,7 +29,7 @@ const siteUrl = "https://jeanlanot.com";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Jean Lanot | Monteur vidéo',
+    default: 'Jean Lanot | Monteur Vidéo Paris',
     template: '%s | Jean Lanot'
   },
   description: "Monteur vidéo professionnel basé à Paris avec plus de 9 ans d'expérience. Spécialisé dans les pubs, documentaires, bandes-annonces et contenus broadcast pour chaînes de télévision, agences et productions.",
@@ -43,22 +43,22 @@ export const metadata: Metadata = {
     locale: 'fr_FR',
     alternateLocale: ['en_US'],
     url: siteUrl,
-    title: 'Jean Lanot | Monteur vidéo',
-    description: 'Portfolio de montage vidéo - Pubs, documentaires, fictions',
+    title: 'Jean Lanot | Monteur Vidéo Paris',
+    description: "Monteur vidéo professionnel basé à Paris avec plus de 9 ans d'expérience. Spécialisé dans les pubs, documentaires, bandes-annonces et contenus broadcast.",
     siteName: 'Jean Lanot Portfolio',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Jean Lanot - Monteur Vidéo',
+        alt: 'Jean Lanot - Monteur Vidéo Paris',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Jean Lanot | Monteur vidéo',
-    description: 'Portfolio de montage vidéo - Pubs, documentaires, fictions',
+    title: 'Jean Lanot | Monteur Vidéo Paris',
+    description: "Monteur vidéo professionnel basé à Paris avec plus de 9 ans d'expérience. Pubs, documentaires, bandes-annonces, broadcast.",
     images: ['/og-image.jpg'],
     creator: '@jeanlanot',
   },
@@ -101,6 +101,7 @@ export default async function RootLayout({
 
   const cookieLang = cookieStore.get('lang')?.value
 
+  // Default lang is 'fr' to match site content and og:locale
   let lang: Lang = 'fr'
 
   if (cookieLang === 'fr' || cookieLang === 'en') {
