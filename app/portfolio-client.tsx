@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion } from "framer-motion";
 import { Mail, Menu, X, Linkedin, Instagram } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
@@ -27,14 +27,19 @@ const FR_CATEGORIES = [
   "FICTIONS",
 ];
 
-const FADE_DURATION = 0.15; // réduit : moins de frames à gérer simultanément sur Safari
-const LAYOUT_SPRING = { type: "spring" as const, stiffness: 400, damping: 35 };
+const LAYOUT_SPRING   = { type: "spring" as const, stiffness: 400, damping: 35 };
 
+// Animations complètes — Chrome, Firefox, et autres
 const ANIM_INITIAL       = { opacity: 0, y: 20 } as const;
 const ANIM_ANIMATE       = { opacity: 1, y: 0 } as const;
-const ANIM_INITIAL_SCALE = { opacity: 0, scale: 0.95 } as const;
+const ANIM_INITIAL_SCALE = { opacity: 0, scale: 0.92 } as const;
 const ANIM_ANIMATE_SCALE = { opacity: 1, scale: 1 } as const;
-const ANIM_EXIT_SCALE    = { opacity: 0, scale: 0.95 } as const;
+const ANIM_EXIT_SCALE    = { opacity: 0, scale: 0.92 } as const;
+
+// Animations allégées — Safari uniquement (pas de scale ni layout)
+const ANIM_SAFARI_INITIAL = { opacity: 0 } as const;
+const ANIM_SAFARI_ANIMATE = { opacity: 1 } as const;
+const ANIM_SAFARI_EXIT    = { opacity: 0 } as const;
 
 const SAFARI_GPU_STYLE: React.CSSProperties = {
   WebkitTransform: "translateZ(0)",
@@ -42,6 +47,14 @@ const SAFARI_GPU_STYLE: React.CSSProperties = {
   WebkitBackfaceVisibility: "hidden",
   backfaceVisibility: "hidden",
 };
+
+// Détection Safari runtime — exécuté une seule fois côté client
+// userAgent le plus fiable : Safari desktop/iOS mais pas Chrome/Edge/Firefox
+function detectSafari(): boolean {
+  if (typeof window === "undefined") return false;
+  const ua = window.navigator.userAgent;
+  return /^((?!chrome|android).)*safari/i.test(ua);
+}
 
 function smoothScrollTo(top: number): void {
   try {
@@ -63,6 +76,12 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const [filter, setFilter]                = useState("TOUT");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasAnimated, setHasAnimated]       = useState(false);
+
+  // Détecté une seule fois après le montage (SSR-safe)
+  const isSafari = useRef(false);
+  useEffect(() => {
+    isSafari.current = detectSafari();
+  }, []);
 
   useEffect(() => {
     smoothScrollTo(0);
@@ -172,10 +191,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             aria-modal="true"
             aria-label="Menu de navigation"
           >
-            <div
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-              onClick={closeMobileMenu}
-            />
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeMobileMenu} />
             <motion.nav
               initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: shouldReduceMotion ? 500 : 300 }}
@@ -223,44 +239,55 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
           </div>
 
           {/*
-            GRILLE — Fix lag Safari :
-            1. Plus de layout= sur le wrapper div → Safari n'a plus à calculer
-               les bounding boxes de 50+ éléments à chaque changement de filtre.
-            2. mode="popLayout" sur AnimatePresence → les cards sortantes sont
-               retirées du flux DOM immédiatement (position:absolute pendant exit),
-               ce qui réduit massivement les reflows sur le main thread Safari.
-            3. FADE_DURATION réduit à 0.15s → moins de frames composites simultanées.
+            GRILLE — stratégie double selon navigateur :
+
+            Safari  → AnimatePresence mode="popLayout", ZERO layout sur les cards,
+                       simple fade opacity 0→1 en 0.2s.
+                       Aucun calcul de bounding box → plus de jank.
+
+            Autres  → AnimatePresence mode="popLayout", layout="position" sur les cards,
+                       scale 0.92→1 + opacity, 0.3s. Repositionnement fluide visible.
           */}
           <LayoutGroup id="portfolio-grid">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
               <AnimatePresence mode="popLayout" initial={!hasAnimated}>
-                {filteredVideos.map((video, index) => (
-                  <motion.div
-                    key={video.id}
-                    layout
-                    initial={ANIM_INITIAL_SCALE}
-                    animate={ANIM_ANIMATE_SCALE}
-                    exit={ANIM_EXIT_SCALE}
-                    transition={{
-                      opacity: { duration: (shouldReduceMotion || hasAnimated) ? 0 : 0.4, ease: "easeOut", delay: (!hasAnimated && !shouldReduceMotion) ? index * 0.04 : 0 },
-                      scale:   { duration: shouldReduceMotion ? 0 : FADE_DURATION, ease: "easeOut" },
-                      layout:  LAYOUT_SPRING,
-                    }}
-                    style={SAFARI_GPU_STYLE}
-                  >
-                    <TiltCard
-                      video={video}
-                      priority={index < 3}
-                      index={index}
-                      onClick={() => {
-                        const url = video.youtubeId
-                          ? `https://www.youtube.com/watch?v=${video.youtubeId}`
-                          : video.videoUrl || "";
-                        if (url) window.open(url, "_blank", "noopener,noreferrer");
-                      }}
-                    />
-                  </motion.div>
-                ))}
+                {filteredVideos.map((video, index) => {
+                  const safari = isSafari.current;
+                  return (
+                    <motion.div
+                      key={video.id}
+                      {...(!safari && { layout: "position" })}
+                      initial={safari ? ANIM_SAFARI_INITIAL : ANIM_INITIAL_SCALE}
+                      animate={safari ? ANIM_SAFARI_ANIMATE : ANIM_ANIMATE_SCALE}
+                      exit={safari ? ANIM_SAFARI_EXIT : ANIM_EXIT_SCALE}
+                      transition={safari
+                        ? {
+                            // Safari : fade simple, pas de scale, pas de layout
+                            opacity: { duration: shouldReduceMotion ? 0 : 0.2, ease: "easeOut" },
+                          }
+                        : {
+                            // Autres : animation complète scale + layout
+                            opacity: { duration: (shouldReduceMotion || hasAnimated) ? 0 : 0.4, ease: "easeOut", delay: (!hasAnimated && !shouldReduceMotion) ? index * 0.04 : 0 },
+                            scale:   { duration: shouldReduceMotion ? 0 : 0.3, ease: "easeOut" },
+                            layout:  LAYOUT_SPRING,
+                          }
+                      }
+                      style={SAFARI_GPU_STYLE}
+                    >
+                      <TiltCard
+                        video={video}
+                        priority={index < 3}
+                        index={index}
+                        onClick={() => {
+                          const url = video.youtubeId
+                            ? `https://www.youtube.com/watch?v=${video.youtubeId}`
+                            : video.videoUrl || "";
+                          if (url) window.open(url, "_blank", "noopener,noreferrer");
+                        }}
+                      />
+                    </motion.div>
+                  );
+                })}
               </AnimatePresence>
             </div>
           </LayoutGroup>
@@ -284,12 +311,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
           <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
             <div className="flex flex-col md:flex-row items-center gap-10">
               <div className="shrink-0">
-                {/*
-                  Fix photo coupée :
-                  - Ajout de position:relative sur le conteneur (requis pour fill)
-                  - Image en mode fill + object-center → remplit parfaitement le cercle
-                  - Suppression de w-full h-full qui ne fonctionnait pas avec le span Next.js
-                */}
                 <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl">
                   <Image
                     src="/ma-photo.webp"
