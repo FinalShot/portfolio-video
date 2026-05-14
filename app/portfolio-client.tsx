@@ -29,8 +29,9 @@ const FR_CATEGORIES = [
   "FICTIONS",
 ] as const;
 
-const FADE_DURATION  = 0.22;
-const LAYOUT_SPRING  = { type: "spring" as const, stiffness: 400, damping: 35 };
+const FADE_DURATION = 0.22;
+
+const LAYOUT_SPRING = { type: "spring" as const, stiffness: 400, damping: 35 };
 
 const ANIM_INITIAL       = { opacity: 0, y: 20 }     as const;
 const ANIM_ANIMATE       = { opacity: 1, y: 0 }      as const;
@@ -45,7 +46,6 @@ const GPU_STYLE: React.CSSProperties = {
   backfaceVisibility: "hidden",
 };
 
-// Style du layer de préchargement : invisible, hors flux, sans interaction
 const PRELOAD_STYLE: React.CSSProperties = {
   position: "fixed",
   top: 0,
@@ -57,17 +57,69 @@ const PRELOAD_STYLE: React.CSSProperties = {
   overflow: "hidden",
   zIndex: -1,
   visibility: "hidden",
-  // Force le navigateur à garder les images en mémoire GPU
   WebkitTransform: "translateZ(0)",
   transform: "translateZ(0)",
 };
+
+// Transition stable utilisée après le stagger initial.
+// Référence d'objet FIXE → React.memo peut refuser le re-rendu.
+const CARD_TRANSITION_STABLE = {
+  opacity: { duration: FADE_DURATION, ease: "easeOut" as const },
+  scale:   { duration: FADE_DURATION, ease: "easeOut" as const },
+  layout:  LAYOUT_SPRING,
+} as const;
+
+// Génère la transition de stagger au 1er chargement (index variable, ok car hasAnimated=false)
+function makeStaggerTransition(index: number) {
+  return {
+    opacity: { duration: 0.4, ease: "easeOut" as const, delay: index * 0.04 },
+    scale:   { duration: 0.4, ease: "easeOut" as const, delay: index * 0.04 },
+    layout:  LAYOUT_SPRING,
+  };
+}
 
 function smoothScrollTo(top: number): void {
   try   { window.scrollTo({ top, behavior: "smooth" }); }
   catch { window.scrollTo(0, top); }
 }
 
-// ─── Composant ────────────────────────────────────────────────────────────────
+// ─── Carte mémoïsée avec transition injectée en prop ────────────────────────────────
+// On isole le motion.div wrapper dans son propre composant mémoïsé pour que
+// la référence de `transition` stable empêche tout re-rendu inutile.
+
+interface CardWrapperProps {
+  video: Video;
+  index: number;
+  hasAnimated: boolean;
+  onClick: (video: Video) => void;
+}
+
+const CardWrapper = React.memo(function CardWrapper({
+  video, index, hasAnimated, onClick,
+}: CardWrapperProps) {
+  const transition = hasAnimated ? CARD_TRANSITION_STABLE : makeStaggerTransition(index);
+  const handleClick = useCallback(() => onClick(video), [onClick, video]);
+
+  return (
+    <motion.div
+      layout="position"
+      initial={ANIM_INITIAL_SCALE}
+      animate={ANIM_ANIMATE_SCALE}
+      exit={ANIM_EXIT_SCALE}
+      transition={transition}
+      style={GPU_STYLE}
+    >
+      <TiltCard
+        video={video}
+        priority={index < 3}
+        index={index}
+        onClick={handleClick}
+      />
+    </motion.div>
+  );
+});
+
+// ─── Composant principal ───────────────────────────────────────────────────────────
 
 interface PortfolioClientProps {
   initialVideos: Video[];
@@ -81,7 +133,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const [filter, setFilter]                = useState("TOUT");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasAnimated, setHasAnimated]       = useState(false);
-  // true une fois que toutes les images ont été préchargées (1 cycle de rendu suffit)
   const [preloaded, setPreloaded]           = useState(false);
 
   useEffect(() => {
@@ -92,7 +143,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     return () => clearTimeout(timer);
   }, [initialVideos.length, shouldReduceMotion]);
 
-  // Après le stagger initial, on considère que toutes les images sont en cache
   useEffect(() => {
     if (hasAnimated) setPreloaded(true);
   }, [hasAnimated]);
@@ -104,7 +154,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     [filter, initialVideos]
   );
 
-  // Cartes actuellement hors filtre — on les garde en préchargement
   const hiddenVideos = useMemo(
     () => filter === "TOUT" ? [] : initialVideos.filter((v) => v.category !== filter),
     [filter, initialVideos]
@@ -121,6 +170,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
 
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 
+  // handleCardClick stable : ne dépend pas de `filter` ni d'aucun state changeant
   const handleCardClick = useCallback((video: Video) => {
     const url = video.youtubeId
       ? `https://www.youtube.com/watch?v=${video.youtubeId}`
@@ -128,15 +178,9 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     if (url) window.open(url, "_blank", "noopener,noreferrer");
   }, []);
 
-  // ── Animations ─────────────────────────────────────────────────────────────
+  // ── Animations header ──────────────────────────────────────────────────────
 
   const headerInitial = (hasAnimated || shouldReduceMotion) ? false : ANIM_INITIAL;
-
-  const cardTransition = useCallback((index: number) => ({
-    opacity: { duration: !hasAnimated ? 0.4 : FADE_DURATION, ease: "easeOut" as const, delay: !hasAnimated ? index * 0.04 : 0 },
-    scale:   { duration: !hasAnimated ? 0.4 : FADE_DURATION, ease: "easeOut" as const, delay: !hasAnimated ? index * 0.04 : 0 },
-    layout:  LAYOUT_SPRING,
-  }), [hasAnimated]);
 
   // ── Navigation ────────────────────────────────────────────────────────────
 
@@ -157,14 +201,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
 
-      {/*
-        ── LAYER DE PRÉCHARGEMENT ──────────────────────────────────────────
-        Invisible, hors flux, z-index -1.
-        Rendu après le stagger initial (preloaded=true) pour ne pas concurrencer
-        le chargement des images visibles au 1er rendu.
-        Garde les thumbnails dans le cache mémoire du navigateur (et GPU Safari)
-        pour que le retour sur une catégorie soit instantané.
-      */}
+      {/* LAYER DE PRÉCHARGEMENT */}
       {preloaded && hiddenVideos.length > 0 && (
         <div style={PRELOAD_STYLE} aria-hidden="true">
           {hiddenVideos.map((video) => (
@@ -314,9 +351,11 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
           </div>
 
           {/*
-            Grille : AnimatePresence + layout="position" identiques à main.
-            Les images hors filtre sont gardées en mémoire via le layer
-            de préchargement ci-dessus — le re-decode est éliminé.
+            Grille :
+            - AnimatePresence + layout="position" → FLIP spring préservé
+            - CardWrapper est React.memoï¿½sé et reçoit CARD_TRANSITION_STABLE
+              (référence fixe) après le stagger → zéro re-rendu des cartes
+              qui restent visibles au changement de filtre
           */}
           <LayoutGroup id="portfolio-grid">
             <motion.div
@@ -326,22 +365,13 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             >
               <AnimatePresence initial={!hasAnimated}>
                 {filteredVideos.map((video, index) => (
-                  <motion.div
+                  <CardWrapper
                     key={video.id}
-                    layout="position"
-                    initial={ANIM_INITIAL_SCALE}
-                    animate={ANIM_ANIMATE_SCALE}
-                    exit={ANIM_EXIT_SCALE}
-                    transition={cardTransition(index)}
-                    style={GPU_STYLE}
-                  >
-                    <TiltCard
-                      video={video}
-                      priority={index < 3}
-                      index={index}
-                      onClick={() => handleCardClick(video)}
-                    />
-                  </motion.div>
+                    video={video}
+                    index={index}
+                    hasAnimated={hasAnimated}
+                    onClick={handleCardClick}
+                  />
                 ))}
               </AnimatePresence>
             </motion.div>
