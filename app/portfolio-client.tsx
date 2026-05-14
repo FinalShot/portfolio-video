@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion } from "framer-motion";
 import { Mail, Menu, X, Linkedin, Instagram } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
@@ -11,14 +11,12 @@ import { translations } from "@/lib/translations";
 import type { Video } from "@/lib/videos";
 import Image from "next/image";
 
-// ─── Constantes hors du composant ─────────────────────────────────────────────
-// Recréer ces objets à chaque render forcait tous les motion.div à re-rendre
 const CATEGORY_KEYS: Record<string, keyof typeof translations["fr"]["categories"]> = {
-  TOUT:                  "all",
+  TOUT:                   "all",
   "PUBS & BRAND CONTENT": "ads",
-  "EMISSIONS & DOCS":    "docs",
-  "BANDES-ANNONCES":     "trailers",
-  FICTIONS:              "fiction",
+  "EMISSIONS & DOCS":     "docs",
+  "BANDES-ANNONCES":      "trailers",
+  FICTIONS:               "fiction",
 };
 
 const FR_CATEGORIES = [
@@ -29,16 +27,15 @@ const FR_CATEGORIES = [
   "FICTIONS",
 ];
 
-const FADE_DURATION = 0.25;
+const FADE_DURATION = 0.15; // réduit : moins de frames à gérer simultanément sur Safari
 const LAYOUT_SPRING = { type: "spring" as const, stiffness: 400, damping: 35 };
 
 const ANIM_INITIAL       = { opacity: 0, y: 20 } as const;
 const ANIM_ANIMATE       = { opacity: 1, y: 0 } as const;
-const ANIM_INITIAL_SCALE = { opacity: 0, scale: 0.92 } as const;
+const ANIM_INITIAL_SCALE = { opacity: 0, scale: 0.95 } as const;
 const ANIM_ANIMATE_SCALE = { opacity: 1, scale: 1 } as const;
-const ANIM_EXIT_SCALE    = { opacity: 0, scale: 0.92 } as const;
+const ANIM_EXIT_SCALE    = { opacity: 0, scale: 0.95 } as const;
 
-// Stable reference — évite de recréer l'objet style inline à chaque render
 const SAFARI_GPU_STYLE: React.CSSProperties = {
   WebkitTransform: "translateZ(0)",
   transform: "translateZ(0)",
@@ -46,7 +43,6 @@ const SAFARI_GPU_STYLE: React.CSSProperties = {
   backfaceVisibility: "hidden",
 };
 
-// ─── Polyfill smooth scroll — Safari < 15.4, Firefox < 36 ─────────────────────
 function smoothScrollTo(top: number): void {
   try {
     window.scrollTo({ top, behavior: "smooth" });
@@ -64,7 +60,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const t = translations[lang];
   const shouldReduceMotion = useReducedMotion();
 
-  const [filter, setFilter]               = useState("TOUT");
+  const [filter, setFilter]                = useState("TOUT");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasAnimated, setHasAnimated]       = useState(false);
 
@@ -76,13 +72,11 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     return () => clearTimeout(timer);
   }, [initialVideos.length, shouldReduceMotion]);
 
-  // useMemo — recalcule seulement quand filter ou initialVideos changent
   const filteredVideos = useMemo(
     () => filter === "TOUT" ? initialVideos : initialVideos.filter((v) => v.category === filter),
     [filter, initialVideos]
   );
 
-  // useCallback — référence stable, évite de re-rendre les enfants
   const scrollToSection = useCallback((id: string) => {
     const element = document.getElementById(id);
     if (element) smoothScrollTo(element.offsetTop - 80);
@@ -110,7 +104,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             JEAN LANOT
           </motion.h1>
 
-          {/* Nav desktop — <a href> pour SEO + accessibilité iOS long-press */}
           <nav className="hidden md:flex items-center gap-8 text-base font-medium" aria-label="Navigation principale">
             <motion.a
               href="#portfolio"
@@ -202,10 +195,8 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
 
       <main className="pt-32 pb-20 px-6 max-w-[95%] mx-auto" id="portfolio">
 
-        {/* SECTION PORTFOLIO */}
         <section aria-label="Portfolio vidéo" className="mb-32">
 
-          {/* Filtres — aria-pressed pour l'accessibilité */}
           <div className="flex flex-wrap gap-3 mb-12 justify-center md:justify-start" role="group" aria-label="Filtres par catégorie">
             {FR_CATEGORIES.map((cat, index) => {
               const label = t.categories[CATEGORY_KEYS[cat]];
@@ -231,24 +222,28 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             })}
           </div>
 
-          {/* Grille Vidéo */}
+          {/*
+            GRILLE — Fix lag Safari :
+            1. Plus de layout= sur le wrapper div → Safari n'a plus à calculer
+               les bounding boxes de 50+ éléments à chaque changement de filtre.
+            2. mode="popLayout" sur AnimatePresence → les cards sortantes sont
+               retirées du flux DOM immédiatement (position:absolute pendant exit),
+               ce qui réduit massivement les reflows sur le main thread Safari.
+            3. FADE_DURATION réduit à 0.15s → moins de frames composites simultanées.
+          */}
           <LayoutGroup id="portfolio-grid">
-            <motion.div
-              layout="position"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12"
-              transition={LAYOUT_SPRING}
-            >
-              <AnimatePresence initial={!hasAnimated}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
+              <AnimatePresence mode="popLayout" initial={!hasAnimated}>
                 {filteredVideos.map((video, index) => (
                   <motion.div
                     key={video.id}
-                    layout="position"
+                    layout
                     initial={ANIM_INITIAL_SCALE}
                     animate={ANIM_ANIMATE_SCALE}
                     exit={ANIM_EXIT_SCALE}
                     transition={{
                       opacity: { duration: (shouldReduceMotion || hasAnimated) ? 0 : 0.4, ease: "easeOut", delay: (!hasAnimated && !shouldReduceMotion) ? index * 0.04 : 0 },
-                      scale:   { duration: (shouldReduceMotion || hasAnimated) ? 0 : 0.4, ease: "easeOut", delay: (!hasAnimated && !shouldReduceMotion) ? index * 0.04 : 0 },
+                      scale:   { duration: shouldReduceMotion ? 0 : FADE_DURATION, ease: "easeOut" },
                       layout:  LAYOUT_SPRING,
                     }}
                     style={SAFARI_GPU_STYLE}
@@ -267,7 +262,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
                   </motion.div>
                 ))}
               </AnimatePresence>
-            </motion.div>
+            </div>
           </LayoutGroup>
 
           {filteredVideos.length === 0 && (
@@ -289,8 +284,21 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
           <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 md:p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
             <div className="flex flex-col md:flex-row items-center gap-10">
               <div className="shrink-0">
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative">
-                  <Image src="/ma-photo.webp" alt="Jean Lanot, monteur vidéo Paris" width={160} height={160} className="w-full h-full object-cover" priority />
+                {/*
+                  Fix photo coupée :
+                  - Ajout de position:relative sur le conteneur (requis pour fill)
+                  - Image en mode fill + object-center → remplit parfaitement le cercle
+                  - Suppression de w-full h-full qui ne fonctionnait pas avec le span Next.js
+                */}
+                <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl">
+                  <Image
+                    src="/ma-photo.webp"
+                    alt="Jean Lanot, monteur vidéo Paris"
+                    fill
+                    sizes="(max-width: 768px) 128px, 160px"
+                    className="object-cover object-center"
+                    priority
+                  />
                 </div>
               </div>
               <div className="text-center md:text-left">
