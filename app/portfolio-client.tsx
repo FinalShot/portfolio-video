@@ -29,14 +29,13 @@ const FR_CATEGORIES = [
 
 const LAYOUT_SPRING   = { type: "spring" as const, stiffness: 400, damping: 35 };
 
-// Animations complètes — Chrome, Firefox, et autres
 const ANIM_INITIAL       = { opacity: 0, y: 20 } as const;
 const ANIM_ANIMATE       = { opacity: 1, y: 0 } as const;
 const ANIM_INITIAL_SCALE = { opacity: 0, scale: 0.92 } as const;
 const ANIM_ANIMATE_SCALE = { opacity: 1, scale: 1 } as const;
 const ANIM_EXIT_SCALE    = { opacity: 0, scale: 0.92 } as const;
 
-// Animations allégées — Safari uniquement (pas de scale ni layout)
+// Safari : fade simple, pas de scale ni layout
 const ANIM_SAFARI_INITIAL = { opacity: 0 } as const;
 const ANIM_SAFARI_ANIMATE = { opacity: 1 } as const;
 const ANIM_SAFARI_EXIT    = { opacity: 0 } as const;
@@ -48,12 +47,9 @@ const SAFARI_GPU_STYLE: React.CSSProperties = {
   backfaceVisibility: "hidden",
 };
 
-// Détection Safari runtime — exécuté une seule fois côté client
-// userAgent le plus fiable : Safari desktop/iOS mais pas Chrome/Edge/Firefox
 function detectSafari(): boolean {
   if (typeof window === "undefined") return false;
-  const ua = window.navigator.userAgent;
-  return /^((?!chrome|android).)*safari/i.test(ua);
+  return /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
 }
 
 function smoothScrollTo(top: number): void {
@@ -68,6 +64,92 @@ interface PortfolioClientProps {
   initialVideos: Video[];
 }
 
+// ─── Grille Safari — AnimatePresence sans LayoutGroup (élimine le scan de bounding boxes) ───
+function SafariGrid({
+  filteredVideos,
+  hasAnimated,
+  shouldReduceMotion,
+  onCardClick,
+}: {
+  filteredVideos: Video[];
+  hasAnimated: boolean;
+  shouldReduceMotion: boolean | null;
+  onCardClick: (video: Video) => void;
+}) {
+  return (
+    <AnimatePresence mode="sync" initial={!hasAnimated}>
+      {filteredVideos.map((video, index) => (
+        <motion.div
+          key={video.id}
+          initial={ANIM_SAFARI_INITIAL}
+          animate={ANIM_SAFARI_ANIMATE}
+          exit={ANIM_SAFARI_EXIT}
+          transition={{ opacity: { duration: shouldReduceMotion ? 0 : 0.2, ease: "easeOut" } }}
+          style={SAFARI_GPU_STYLE}
+        >
+          <TiltCard
+            video={video}
+            priority={index < 3}
+            index={index}
+            onClick={() => onCardClick(video)}
+          />
+        </motion.div>
+      ))}
+    </AnimatePresence>
+  );
+}
+
+// ─── Grille Chrome/Firefox — LayoutGroup + layout + scale exit/enter visibles ───
+function FullGrid({
+  filteredVideos,
+  hasAnimated,
+  shouldReduceMotion,
+  onCardClick,
+}: {
+  filteredVideos: Video[];
+  hasAnimated: boolean;
+  shouldReduceMotion: boolean | null;
+  onCardClick: (video: Video) => void;
+}) {
+  return (
+    <LayoutGroup id="portfolio-grid">
+      {/*
+        mode="sync" : les cards sortantes jouent leur exit (scale down + fade)
+        AVANT que les nouvelles entrent — les deux animations sont bien visibles.
+        mode="popLayout" retirait les éléments du DOM trop tôt, cachant l'exit.
+      */}
+      <AnimatePresence mode="sync" initial={!hasAnimated}>
+        {filteredVideos.map((video, index) => (
+          <motion.div
+            key={video.id}
+            layout="position"
+            initial={ANIM_INITIAL_SCALE}
+            animate={ANIM_ANIMATE_SCALE}
+            exit={ANIM_EXIT_SCALE}
+            transition={{
+              opacity: {
+                duration: (shouldReduceMotion || hasAnimated) ? 0 : 0.4,
+                ease: "easeOut",
+                delay: (!hasAnimated && !shouldReduceMotion) ? index * 0.04 : 0,
+              },
+              scale:  { duration: shouldReduceMotion ? 0 : 0.3, ease: "easeOut" },
+              layout: LAYOUT_SPRING,
+            }}
+            style={SAFARI_GPU_STYLE}
+          >
+            <TiltCard
+              video={video}
+              priority={index < 3}
+              index={index}
+              onClick={() => onCardClick(video)}
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </LayoutGroup>
+  );
+}
+
 export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const { lang } = useLang();
   const t = translations[lang];
@@ -77,7 +159,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasAnimated, setHasAnimated]       = useState(false);
 
-  // Détecté une seule fois après le montage (SSR-safe)
   const isSafari = useRef(false);
   useEffect(() => {
     isSafari.current = detectSafari();
@@ -103,15 +184,20 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
 
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 
+  const handleCardClick = useCallback((video: Video) => {
+    const url = video.youtubeId
+      ? `https://www.youtube.com/watch?v=${video.youtubeId}`
+      : video.videoUrl || "";
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+  }, []);
+
   const headerInitial = (hasAnimated || shouldReduceMotion) ? false : ANIM_INITIAL;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
 
-      {/* HEADER FIXE */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5" role="banner">
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
-
           <motion.h1
             initial={headerInitial}
             animate={ANIM_ANIMATE}
@@ -124,47 +210,10 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
           </motion.h1>
 
           <nav className="hidden md:flex items-center gap-8 text-base font-medium" aria-label="Navigation principale">
-            <motion.a
-              href="#portfolio"
-              initial={headerInitial}
-              animate={ANIM_ANIMATE}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: 0.08, ease: "easeOut" }}
-              style={SAFARI_GPU_STYLE}
-              onClick={(e) => { e.preventDefault(); smoothScrollTo(0); }}
-              className="hover:text-gray-300 transition-colors"
-            >
-              {t.nav.portfolio}
-            </motion.a>
-            <motion.a
-              href="#about"
-              initial={headerInitial}
-              animate={ANIM_ANIMATE}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: 0.12, ease: "easeOut" }}
-              style={SAFARI_GPU_STYLE}
-              onClick={(e) => { e.preventDefault(); scrollToSection("about"); }}
-              className="hover:text-gray-300 transition-colors"
-            >
-              {t.nav.about}
-            </motion.a>
-            <motion.a
-              href="#contact"
-              initial={headerInitial}
-              animate={ANIM_ANIMATE}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: 0.16, ease: "easeOut" }}
-              style={SAFARI_GPU_STYLE}
-              onClick={(e) => { e.preventDefault(); scrollToSection("contact"); }}
-              className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold"
-            >
-              {t.nav.contact}
-            </motion.a>
-            <motion.div
-              initial={headerInitial}
-              animate={ANIM_ANIMATE}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: 0.2, ease: "easeOut" }}
-              style={SAFARI_GPU_STYLE}
-            >
-              <LanguageToggle />
-            </motion.div>
+            <motion.a href="#portfolio" initial={headerInitial} animate={ANIM_ANIMATE} transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: 0.08, ease: "easeOut" }} style={SAFARI_GPU_STYLE} onClick={(e) => { e.preventDefault(); smoothScrollTo(0); }} className="hover:text-gray-300 transition-colors">{t.nav.portfolio}</motion.a>
+            <motion.a href="#about" initial={headerInitial} animate={ANIM_ANIMATE} transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: 0.12, ease: "easeOut" }} style={SAFARI_GPU_STYLE} onClick={(e) => { e.preventDefault(); scrollToSection("about"); }} className="hover:text-gray-300 transition-colors">{t.nav.about}</motion.a>
+            <motion.a href="#contact" initial={headerInitial} animate={ANIM_ANIMATE} transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: 0.16, ease: "easeOut" }} style={SAFARI_GPU_STYLE} onClick={(e) => { e.preventDefault(); scrollToSection("contact"); }} className="bg-white text-black px-4 py-1.5 rounded-full hover:bg-gray-200 transition-colors text-sm font-bold">{t.nav.contact}</motion.a>
+            <motion.div initial={headerInitial} animate={ANIM_ANIMATE} transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: 0.2, ease: "easeOut" }} style={SAFARI_GPU_STYLE}><LanguageToggle /></motion.div>
           </nav>
 
           <button
@@ -179,25 +228,11 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
         </div>
       </header>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
-            className="fixed inset-0 z-40 md:hidden"
-            id="mobile-menu"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu de navigation"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: shouldReduceMotion ? 0 : 0.2 }} className="fixed inset-0 z-40 md:hidden" id="mobile-menu" role="dialog" aria-modal="true" aria-label="Menu de navigation">
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeMobileMenu} />
-            <motion.nav
-              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: shouldReduceMotion ? 500 : 300 }}
-              style={SAFARI_GPU_STYLE}
-              className="absolute top-0 right-0 h-full w-64 bg-[#0a0a0a] border-l border-white/10 pt-24 px-6"
-            >
+            <motion.nav initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 25, stiffness: shouldReduceMotion ? 500 : 300 }} style={SAFARI_GPU_STYLE} className="absolute top-0 right-0 h-full w-64 bg-[#0a0a0a] border-l border-white/10 pt-24 px-6">
               <div className="flex flex-col gap-6">
                 <a href="#portfolio" onClick={(e) => { e.preventDefault(); smoothScrollTo(0); closeMobileMenu(); }} className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5">{t.nav.portfolio}</a>
                 <a href="#about" onClick={(e) => { e.preventDefault(); scrollToSection("about"); closeMobileMenu(); }} className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5">{t.nav.about}</a>
@@ -238,66 +273,18 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             })}
           </div>
 
-          {/*
-            GRILLE — stratégie double selon navigateur :
-
-            Safari  → AnimatePresence mode="popLayout", ZERO layout sur les cards,
-                       simple fade opacity 0→1 en 0.2s.
-                       Aucun calcul de bounding box → plus de jank.
-
-            Autres  → AnimatePresence mode="popLayout", layout="position" sur les cards,
-                       scale 0.92→1 + opacity, 0.3s. Repositionnement fluide visible.
-          */}
-          <LayoutGroup id="portfolio-grid">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
-              <AnimatePresence mode="popLayout" initial={!hasAnimated}>
-                {filteredVideos.map((video, index) => {
-                  const safari = isSafari.current;
-                  return (
-                    <motion.div
-                      key={video.id}
-                      {...(!safari && { layout: "position" })}
-                      initial={safari ? ANIM_SAFARI_INITIAL : ANIM_INITIAL_SCALE}
-                      animate={safari ? ANIM_SAFARI_ANIMATE : ANIM_ANIMATE_SCALE}
-                      exit={safari ? ANIM_SAFARI_EXIT : ANIM_EXIT_SCALE}
-                      transition={safari
-                        ? {
-                            // Safari : fade simple, pas de scale, pas de layout
-                            opacity: { duration: shouldReduceMotion ? 0 : 0.2, ease: "easeOut" },
-                          }
-                        : {
-                            // Autres : animation complète scale + layout
-                            opacity: { duration: (shouldReduceMotion || hasAnimated) ? 0 : 0.4, ease: "easeOut", delay: (!hasAnimated && !shouldReduceMotion) ? index * 0.04 : 0 },
-                            scale:   { duration: shouldReduceMotion ? 0 : 0.3, ease: "easeOut" },
-                            layout:  LAYOUT_SPRING,
-                          }
-                      }
-                      style={SAFARI_GPU_STYLE}
-                    >
-                      <TiltCard
-                        video={video}
-                        priority={index < 3}
-                        index={index}
-                        onClick={() => {
-                          const url = video.youtubeId
-                            ? `https://www.youtube.com/watch?v=${video.youtubeId}`
-                            : video.videoUrl || "";
-                          if (url) window.open(url, "_blank", "noopener,noreferrer");
-                        }}
-                      />
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-          </LayoutGroup>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
+            {isSafari.current
+              ? <SafariGrid filteredVideos={filteredVideos} hasAnimated={hasAnimated} shouldReduceMotion={shouldReduceMotion} onCardClick={handleCardClick} />
+              : <FullGrid   filteredVideos={filteredVideos} hasAnimated={hasAnimated} shouldReduceMotion={shouldReduceMotion} onCardClick={handleCardClick} />
+            }
+          </div>
 
           {filteredVideos.length === 0 && (
             <div className="text-center py-20 text-gray-400" role="status">{t.noVideos}</div>
           )}
         </section>
 
-        {/* SECTION À PROPOS */}
         <motion.section
           id="about"
           initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
@@ -312,24 +299,14 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             <div className="flex flex-col md:flex-row items-center gap-10">
               <div className="shrink-0">
                 <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl">
-                  <Image
-                    src="/ma-photo.webp"
-                    alt="Jean Lanot, monteur vidéo Paris"
-                    fill
-                    sizes="(max-width: 768px) 128px, 160px"
-                    className="object-cover object-center"
-                    priority
-                  />
+                  <Image src="/ma-photo.webp" alt="Jean Lanot, monteur vidéo Paris" fill sizes="(max-width: 768px) 128px, 160px" className="object-cover object-center" priority />
                 </div>
               </div>
               <div className="text-center md:text-left">
                 <h2 className="text-2xl font-bold mb-4">{t.about.title}</h2>
                 <p className="text-gray-300 leading-relaxed text-justify text-xl tracking-normal">
                   {t.about.bio.split("\n").map((line, i) => (
-                    <React.Fragment key={i}>
-                      {line}
-                      {i < t.about.bio.split("\n").length - 1 && <br />}
-                    </React.Fragment>
+                    <React.Fragment key={i}>{line}{i < t.about.bio.split("\n").length - 1 && <br />}</React.Fragment>
                   ))}
                 </p>
               </div>
@@ -337,7 +314,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
           </div>
         </motion.section>
 
-        {/* SECTION CONTACT */}
         <motion.section
           id="contact"
           initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
@@ -353,32 +329,21 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             <ContactForm />
             <p className="mt-6 text-sm text-gray-400">
               {t.contact.orEmail}{" "}
-              <a href="mailto:contact@jeanlanot.com" className="text-white hover:underline">
-                contact@jeanlanot.com
-              </a>
+              <a href="mailto:contact@jeanlanot.com" className="text-white hover:underline">contact@jeanlanot.com</a>
             </p>
           </div>
         </motion.section>
 
       </main>
 
-      {/* FOOTER */}
       <footer className="py-8 border-t border-white/5" role="contentinfo">
         <div className="flex flex-col items-center gap-4">
           <div className="flex items-center gap-4">
-            <a href="https://www.linkedin.com/in/jean-lanot" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Jean Lanot" className="text-gray-400 hover:text-white transition-colors">
-              <Linkedin className="w-5 h-5" aria-hidden="true" />
-            </a>
-            <a href="https://www.instagram.com/jean_lanot/" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Jean Lanot" className="text-gray-400 hover:text-white transition-colors">
-              <Instagram className="w-5 h-5" aria-hidden="true" />
-            </a>
-            <a href="mailto:contact@jeanlanot.com" aria-label="Envoyer un email à Jean Lanot" className="text-gray-400 hover:text-white transition-colors">
-              <Mail className="w-5 h-5" aria-hidden="true" />
-            </a>
+            <a href="https://www.linkedin.com/in/jean-lanot" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Jean Lanot" className="text-gray-400 hover:text-white transition-colors"><Linkedin className="w-5 h-5" aria-hidden="true" /></a>
+            <a href="https://www.instagram.com/jean_lanot/" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Jean Lanot" className="text-gray-400 hover:text-white transition-colors"><Instagram className="w-5 h-5" aria-hidden="true" /></a>
+            <a href="mailto:contact@jeanlanot.com" aria-label="Envoyer un email à Jean Lanot" className="text-gray-400 hover:text-white transition-colors"><Mail className="w-5 h-5" aria-hidden="true" /></a>
           </div>
-          <p className="text-gray-400 text-xs">
-            &copy; {new Date().getFullYear()} Jean Lanot. {t.footer.rights}
-          </p>
+          <p className="text-gray-400 text-xs">&copy; {new Date().getFullYear()} Jean Lanot. {t.footer.rights}</p>
         </div>
       </footer>
 
