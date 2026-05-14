@@ -45,7 +45,15 @@ const SAFARI_GPU_STYLE: React.CSSProperties = {
   backfaceVisibility: "hidden",
 };
 
-// Type explicite pour les items de navigation
+// Transitions typées avec ease littéral pour framer-motion
+const GRID_TRANSITION_SAFARI = {
+  opacity: { duration: 0.2, ease: "easeOut" as const },
+} as const;
+
+const GRID_TRANSITION_SAFARI_REDUCED = {
+  opacity: { duration: 0, ease: "easeOut" as const },
+} as const;
+
 type NavItem = {
   href: string;
   label: string;
@@ -111,15 +119,18 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const gridAnimate = useSafariAnim ? GRID_SAFARI_ANIMATE : GRID_ANIMATE;
   const gridExit    = useSafariAnim ? GRID_SAFARI_EXIT    : GRID_EXIT;
 
-  const gridTransition = useSafariAnim
-    ? { opacity: { duration: shouldReduceMotion ? 0 : 0.2, ease: "easeOut" } }
-    : {
-        opacity: { duration: (shouldReduceMotion || hasAnimated) ? 0 : 0.4, ease: "easeOut" },
-        scale:   { duration: shouldReduceMotion ? 0 : 0.35, ease: "easeOut" },
-        layout:  LAYOUT_SPRING,
-      };
+  // Transition typée correctement — ease doit être un littéral, pas string
+  const gridTransition = useMemo(() => {
+    if (useSafariAnim) {
+      return shouldReduceMotion ? GRID_TRANSITION_SAFARI_REDUCED : GRID_TRANSITION_SAFARI;
+    }
+    return {
+      opacity: { duration: (shouldReduceMotion || hasAnimated) ? 0 : 0.4, ease: "easeOut" as const },
+      scale:   { duration: shouldReduceMotion ? 0 : 0.35, ease: "easeOut" as const },
+      layout:  LAYOUT_SPRING,
+    };
+  }, [useSafariAnim, shouldReduceMotion, hasAnimated]);
 
-  // Tableau typé explicitement — évite l'erreur TS sur la propriété optionnelle `cta`
   const navItems: NavItem[] = [
     { href: "#portfolio", label: t.nav.portfolio, onClick: () => smoothScrollTo(0),         delay: 0.08 },
     { href: "#about",     label: t.nav.about,     onClick: () => scrollToSection("about"),   delay: 0.12 },
