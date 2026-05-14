@@ -30,7 +30,6 @@ const FR_CATEGORIES = [
 ] as const;
 
 const FADE_DURATION = 0.22;
-
 const LAYOUT_SPRING = { type: "spring" as const, stiffness: 400, damping: 35 };
 
 const ANIM_INITIAL       = { opacity: 0, y: 20 }     as const;
@@ -39,6 +38,7 @@ const ANIM_INITIAL_SCALE = { opacity: 0, scale: 0.92 } as const;
 const ANIM_ANIMATE_SCALE = { opacity: 1, scale: 1 }    as const;
 const ANIM_EXIT_SCALE    = { opacity: 0, scale: 0.92 } as const;
 
+// GPU header/sections — uniquement là où c'est nécessaire
 const GPU_STYLE: React.CSSProperties = {
   WebkitTransform: "translateZ(0)",
   transform: "translateZ(0)",
@@ -46,12 +46,19 @@ const GPU_STYLE: React.CSSProperties = {
   backfaceVisibility: "hidden",
 };
 
+// CardWrapper : willChange UNIQUEMENT sur opacity+transform (la seule propriété qui anime).
+// PAS de translateZ(0) supplémentaire — framer-motion le gère lui-même via transform.
+// Cela évite la promotion GPU en double couche sur Safari.
+const CARD_WRAPPER_STYLE: React.CSSProperties = {
+  willChange: "transform, opacity",
+  // contain isole les repaints sans créer de GPU layer supplémentaire
+  contain: "layout style",
+};
+
 const PRELOAD_STYLE: React.CSSProperties = {
   position: "fixed",
-  top: 0,
-  left: 0,
-  width: 1,
-  height: 1,
+  top: 0, left: 0,
+  width: 1, height: 1,
   opacity: 0,
   pointerEvents: "none",
   overflow: "hidden",
@@ -61,15 +68,13 @@ const PRELOAD_STYLE: React.CSSProperties = {
   transform: "translateZ(0)",
 };
 
-// Transition stable utilisée après le stagger initial.
-// Référence d'objet FIXE → React.memo peut refuser le re-rendu.
+// Transition stable après le stagger — référence fixe pour React.memo
 const CARD_TRANSITION_STABLE = {
   opacity: { duration: FADE_DURATION, ease: "easeOut" as const },
   scale:   { duration: FADE_DURATION, ease: "easeOut" as const },
   layout:  LAYOUT_SPRING,
 } as const;
 
-// Génère la transition de stagger au 1er chargement (index variable, ok car hasAnimated=false)
 function makeStaggerTransition(index: number) {
   return {
     opacity: { duration: 0.4, ease: "easeOut" as const, delay: index * 0.04 },
@@ -83,9 +88,7 @@ function smoothScrollTo(top: number): void {
   catch { window.scrollTo(0, top); }
 }
 
-// ─── Carte mémoïsée avec transition injectée en prop ────────────────────────────────
-// On isole le motion.div wrapper dans son propre composant mémoïsé pour que
-// la référence de `transition` stable empêche tout re-rendu inutile.
+// ─── CardWrapper mémoïsé ───────────────────────────────────────────────────────
 
 interface CardWrapperProps {
   video: Video;
@@ -107,7 +110,9 @@ const CardWrapper = React.memo(function CardWrapper({
       animate={ANIM_ANIMATE_SCALE}
       exit={ANIM_EXIT_SCALE}
       transition={transition}
-      style={GPU_STYLE}
+      // Un seul layer GPU ici — pas de translateZ(0) manuel,
+      // framer-motion applique transform lui-même sur ce nœud
+      style={CARD_WRAPPER_STYLE}
     >
       <TiltCard
         video={video}
@@ -119,7 +124,7 @@ const CardWrapper = React.memo(function CardWrapper({
   );
 });
 
-// ─── Composant principal ───────────────────────────────────────────────────────────
+// ─── Composant principal ─────────────────────────────────────────────────────────
 
 interface PortfolioClientProps {
   initialVideos: Video[];
@@ -170,7 +175,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
 
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 
-  // handleCardClick stable : ne dépend pas de `filter` ni d'aucun state changeant
   const handleCardClick = useCallback((video: Video) => {
     const url = video.youtubeId
       ? `https://www.youtube.com/watch?v=${video.youtubeId}`
@@ -276,7 +280,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
         </div>
       </header>
 
-      {/* MENU MOBILE */}
+      {/* MENU MOBILE — no-unmount */}
       <motion.div
         initial={false}
         animate={mobileMenuOpen
@@ -350,13 +354,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             ))}
           </div>
 
-          {/*
-            Grille :
-            - AnimatePresence + layout="position" → FLIP spring préservé
-            - CardWrapper est React.memoï¿½sé et reçoit CARD_TRANSITION_STABLE
-              (référence fixe) après le stagger → zéro re-rendu des cartes
-              qui restent visibles au changement de filtre
-          */}
           <LayoutGroup id="portfolio-grid">
             <motion.div
               layout="position"

@@ -13,7 +13,7 @@ import type { Video } from "@/lib/videos";
 import { Play } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 
-// ─── Constantes globales ────────────────────────────────────────────────────
+// ─── Constantes globales ───────────────────────────────────────────────────
 
 const CATEGORY_LABELS: Record<string, { fr: string; en: string }> = {
   "PUBS & BRAND CONTENT": { fr: "PUBS & BRAND CONTENT", en: "ADS & BRAND CONTENT" },
@@ -24,7 +24,7 @@ const CATEGORY_LABELS: Record<string, { fr: string; en: string }> = {
 
 const SPRING_CONFIG = { stiffness: 300, damping: 30 } as const;
 
-// ─── Composant interne ──────────────────────────────────────────────────────
+// ─── Composant interne ───────────────────────────────────────────────────
 
 interface TiltCardProps {
   video: Video;
@@ -44,7 +44,6 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
     setIsTouch(window.matchMedia("(hover: none)").matches);
   }, []);
 
-  // MotionValues — toujours initialisés, jamais conditionnels
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
 
@@ -57,7 +56,6 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
   const glareY     = useTransform(y, [0, 1], ["-50%", "150%"]);
   const background = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 20%, transparent 50%)`;
 
-  // Callbacks stables
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (isTouch || shouldReduceMotion || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
@@ -75,8 +73,6 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
     if (!isTouch && !shouldReduceMotion) setIsHovered(true);
   }, [isTouch, shouldReduceMotion]);
 
-  // Tilt désactivé sur touch / reduced-motion → on passe 0 (number stable)
-  // Safari gère bien les MotionValues ici car les springs sont toujours montés
   const tiltX = (shouldReduceMotion || isTouch) ? 0 : rotateX;
   const tiltY = (shouldReduceMotion || isTouch) ? 0 : rotateY;
   const animDuration = shouldReduceMotion ? 0 : 0.3;
@@ -84,18 +80,20 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
   const categoryLabel = CATEGORY_LABELS[video.category]?.[lang] ?? video.category;
 
   return (
+    /*
+      Outer wrapper : perspective + touch, PAS de willChange ni translateZ(0).
+      Le GPU layer est délégué au CardWrapper parent (un seul layer par carte).
+      Ça évite la double-promotion Safari qui causait le lag.
+    */
     <motion.div
       ref={cardRef}
       className="relative cursor-pointer w-full pointer-events-auto"
       style={{
         perspective: 1000,
         aspectRatio: "16 / 9",
-        willChange: "transform",
-        WebkitTransform: "translateZ(0)",
-        transform: "translateZ(0)",
-        WebkitBackfaceVisibility: "hidden",
-        backfaceVisibility: "hidden",
         touchAction: "manipulation",
+        // contain isole les repaints du tilt sans créer de nouveau GPU layer
+        contain: "layout style",
       }}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
@@ -106,6 +104,10 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
       aria-label={`Voir la vidéo : ${video.title}`}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick?.(); }}
     >
+      {/*
+        Inner wrapper : SEUL endroit avec willChange + backfaceVisibility.
+        C'est lui qui anime le tilt (rotateX/Y) — un seul layer GPU ici.
+      */}
       <motion.div
         className="relative h-full w-full rounded-xl overflow-hidden border border-white/5"
         style={{
@@ -132,14 +134,14 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
           />
         </div>
 
-        {/* Gradient bas — disparaît au hover */}
+        {/* Gradient bas */}
         <motion.div
           className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
           animate={{ opacity: isHovered ? 0 : 1 }}
           transition={{ duration: animDuration }}
         />
 
-        {/* Glare — désactivé sur touch + reduced-motion */}
+        {/* Glare */}
         {!isTouch && !shouldReduceMotion && (
           <motion.div
             className="pointer-events-none absolute inset-0 rounded-xl overflow-hidden"
@@ -189,6 +191,4 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
   );
 }
 
-// React.memo évite les re-rendus quand portfolio-client change de state
-// (ex: hover d'une autre carte, ouverture menu mobile)
 export const TiltCard = React.memo(TiltCardInner);
