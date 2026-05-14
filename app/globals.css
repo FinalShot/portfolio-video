@@ -65,7 +65,20 @@
   --sidebar-ring: oklch(0.65 0.15 180);
 }
 
-/* Optimisations Safari pour les animations 3D */
+/* ─── prefers-reduced-motion ────────────────────────────────────────────────── */
+/* Coupe toutes les transitions/animations CSS pour les utilisateurs sensibles   */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Optimisations Safari pour les animations 3D ───────────────────────────── */
 @supports (-webkit-backdrop-filter: blur(1px)) {
   [class*="motion"] {
     -webkit-transform: translateZ(0);
@@ -74,18 +87,45 @@
   }
 }
 
-/* Force GPU rendering pour les cards */
+/* ─── Force GPU rendering pour les cards ────────────────────────────────────── */
 .tilt-card-wrapper {
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
   will-change: transform;
 }
 
-/* Fix backdrop-blur lent sur Safari — fallback couleur opaque */
+/* ─── Fix backdrop-blur lent sur Safari — fallback couleur opaque ────────────── */
 @supports not (-webkit-backdrop-filter: blur(1px)) {
   header {
     background-color: rgba(10, 10, 10, 0.97) !important;
   }
+}
+
+/* ─── Fix scroll lateral parasite sur mobile (iOS Safari) ───────────────────── */
+html {
+  overflow-x: hidden;
+  /* Réserve l'espace de la scrollbar pour éviter le layout shift (CLS) */
+  scrollbar-gutter: stable;
+}
+
+body {
+  overflow-x: hidden;
+  /* Empêche le highlight bleu au tap sur Android Chrome */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ─── Focus visible — accessibilité clavier (Chrome, Firefox, Safari) ─────────── */
+:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ─── Fix img/video sans dimensions explicites → évite CLS ──────────────────── */
+img,
+video {
+  max-width: 100%;
+  height: auto;
 }
 
 .dark {
