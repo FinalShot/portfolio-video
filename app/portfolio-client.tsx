@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { motion, LayoutGroup, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup, useReducedMotion } from "framer-motion";
 import { Mail, Menu, X, Linkedin, Instagram } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { TiltCard } from "@/components/tilt-card";
@@ -32,22 +32,34 @@ const FR_CATEGORIES = [
 const FADE_DURATION  = 0.22;
 const LAYOUT_SPRING  = { type: "spring" as const, stiffness: 400, damping: 35 };
 
-// États d'animation des cartes
-const CARD_VISIBLE   = { opacity: 1, scale: 1,    display: "block" } as const;
-const CARD_HIDDEN    = { opacity: 0, scale: 0.92, display: "none"  } as const;
-// Entrée initiale (stagger au 1er chargement)
-const CARD_ENTER     = { opacity: 0, scale: 0.92 } as const;
+const ANIM_INITIAL       = { opacity: 0, y: 20 }     as const;
+const ANIM_ANIMATE       = { opacity: 1, y: 0 }      as const;
+const ANIM_INITIAL_SCALE = { opacity: 0, scale: 0.92 } as const;
+const ANIM_ANIMATE_SCALE = { opacity: 1, scale: 1 }    as const;
+const ANIM_EXIT_SCALE    = { opacity: 0, scale: 0.92 } as const;
 
-// Header
-const ANIM_INITIAL   = { opacity: 0, y: 20 } as const;
-const ANIM_ANIMATE   = { opacity: 1, y: 0  } as const;
-
-// GPU compositing — Safari + tous navigateurs
 const GPU_STYLE: React.CSSProperties = {
   WebkitTransform: "translateZ(0)",
   transform: "translateZ(0)",
   WebkitBackfaceVisibility: "hidden",
   backfaceVisibility: "hidden",
+};
+
+// Style du layer de préchargement : invisible, hors flux, sans interaction
+const PRELOAD_STYLE: React.CSSProperties = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: 1,
+  height: 1,
+  opacity: 0,
+  pointerEvents: "none",
+  overflow: "hidden",
+  zIndex: -1,
+  visibility: "hidden",
+  // Force le navigateur à garder les images en mémoire GPU
+  WebkitTransform: "translateZ(0)",
+  transform: "translateZ(0)",
 };
 
 function smoothScrollTo(top: number): void {
@@ -69,6 +81,8 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const [filter, setFilter]                = useState("TOUT");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasAnimated, setHasAnimated]       = useState(false);
+  // true une fois que toutes les images ont été préchargées (1 cycle de rendu suffit)
+  const [preloaded, setPreloaded]           = useState(false);
 
   useEffect(() => {
     smoothScrollTo(0);
@@ -78,23 +92,27 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     return () => clearTimeout(timer);
   }, [initialVideos.length, shouldReduceMotion]);
 
-  // ── Données dérivées ────────────────────────────────────────────────────────
+  // Après le stagger initial, on considère que toutes les images sont en cache
+  useEffect(() => {
+    if (hasAnimated) setPreloaded(true);
+  }, [hasAnimated]);
 
-  // Set des IDs visibles — O(1) lookup, recalculé seulement si filter change
-  const visibleIds = useMemo(
-    () => new Set(
-      filter === "TOUT"
-        ? initialVideos.map((v) => v.id)
-        : initialVideos.filter((v) => v.category === filter).map((v) => v.id)
-    ),
+  // ── Données dérivées ──────────────────────────────────────────────────────
+
+  const filteredVideos = useMemo(
+    () => filter === "TOUT" ? initialVideos : initialVideos.filter((v) => v.category === filter),
+    [filter, initialVideos]
+  );
+
+  // Cartes actuellement hors filtre — on les garde en préchargement
+  const hiddenVideos = useMemo(
+    () => filter === "TOUT" ? [] : initialVideos.filter((v) => v.category !== filter),
     [filter, initialVideos]
   );
 
   const bioLines = useMemo(() => t.about.bio.split("\n"), [t.about.bio]);
 
-  const hasVisibleVideos = visibleIds.size > 0;
-
-  // ── Callbacks stables ───────────────────────────────────────────────────────
+  // ── Callbacks stables ──────────────────────────────────────────────────────
 
   const scrollToSection = useCallback((id: string) => {
     const el = document.getElementById(id);
@@ -110,23 +128,17 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     if (url) window.open(url, "_blank", "noopener,noreferrer");
   }, []);
 
-  // ── Animations ──────────────────────────────────────────────────────────────
+  // ── Animations ─────────────────────────────────────────────────────────────
 
   const headerInitial = (hasAnimated || shouldReduceMotion) ? false : ANIM_INITIAL;
 
-  // Transition d'une carte selon son état
-  const cardTransition = useCallback((index: number, visible: boolean) => {
-    if (shouldReduceMotion) return { duration: 0 };
-    // Stagger uniquement au 1er chargement pour les cartes visibles
-    const delay = (!hasAnimated && visible) ? index * 0.04 : 0;
-    return {
-      opacity:  { duration: FADE_DURATION, ease: "easeOut" as const, delay },
-      scale:    { duration: FADE_DURATION, ease: "easeOut" as const, delay },
-      layout:   LAYOUT_SPRING,
-    };
-  }, [hasAnimated, shouldReduceMotion]);
+  const cardTransition = useCallback((index: number) => ({
+    opacity: { duration: !hasAnimated ? 0.4 : FADE_DURATION, ease: "easeOut" as const, delay: !hasAnimated ? index * 0.04 : 0 },
+    scale:   { duration: !hasAnimated ? 0.4 : FADE_DURATION, ease: "easeOut" as const, delay: !hasAnimated ? index * 0.04 : 0 },
+    layout:  LAYOUT_SPRING,
+  }), [hasAnimated]);
 
-  // ── Navigation ──────────────────────────────────────────────────────────────
+  // ── Navigation ────────────────────────────────────────────────────────────
 
   const navItems = [
     { href: "#portfolio", label: t.nav.portfolio, onClick: () => smoothScrollTo(0),         delay: 0.08 },
@@ -140,10 +152,35 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     { href: "#contact",   label: t.nav.contact,   fn: () => { scrollToSection("contact");    closeMobileMenu(); } },
   ];
 
-  // ── Rendu ───────────────────────────────────────────────────────────────────
+  // ── Rendu ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
+
+      {/*
+        ── LAYER DE PRÉCHARGEMENT ──────────────────────────────────────────
+        Invisible, hors flux, z-index -1.
+        Rendu après le stagger initial (preloaded=true) pour ne pas concurrencer
+        le chargement des images visibles au 1er rendu.
+        Garde les thumbnails dans le cache mémoire du navigateur (et GPU Safari)
+        pour que le retour sur une catégorie soit instantané.
+      */}
+      {preloaded && hiddenVideos.length > 0 && (
+        <div style={PRELOAD_STYLE} aria-hidden="true">
+          {hiddenVideos.map((video) => (
+            <Image
+              key={`preload-${video.id}`}
+              src={video.thumbnail}
+              alt=""
+              width={2}
+              height={1}
+              sizes="1px"
+              style={{ width: 1, height: 1, display: "block" }}
+              loading="lazy"
+            />
+          ))}
+        </div>
+      )}
 
       {/* HEADER */}
       <header
@@ -205,7 +242,10 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
       {/* MENU MOBILE */}
       <motion.div
         initial={false}
-        animate={mobileMenuOpen ? { opacity: 1, pointerEvents: "auto" as const } : { opacity: 0, pointerEvents: "none" as const }}
+        animate={mobileMenuOpen
+          ? { opacity: 1, pointerEvents: "auto"  as const }
+          : { opacity: 0, pointerEvents: "none" as const }
+        }
         transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
         className="fixed inset-0 z-40 md:hidden"
         id="mobile-menu"
@@ -274,16 +314,9 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
           </div>
 
           {/*
-            ── Grille no-unmount ───────────────────────────────────────────────
-            Toutes les cartes sont TOUJOURS montées → les <Image> ne sont jamais
-            déchargées → zéro re-decode au changement de filtre.
-
-            Fonctionnement :
-            - visible  → animate vers CARD_VISIBLE  (opacity 1, scale 1, display block)
-            - invisible → animate vers CARD_HIDDEN   (opacity 0, scale 0.92, display none)
-            framer-motion applique display:none APRÈS la fin de l'animation de sortie,
-            donc le fade-out/scale-down joue bien avant que la case disparaisse du flux.
-            Les cartes restantes se repositionnent via layout="position" + LAYOUT_SPRING.
+            Grille : AnimatePresence + layout="position" identiques à main.
+            Les images hors filtre sont gardées en mémoire via le layer
+            de préchargement ci-dessus — le re-decode est éliminé.
           */}
           <LayoutGroup id="portfolio-grid">
             <motion.div
@@ -291,17 +324,16 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12"
               transition={LAYOUT_SPRING}
             >
-              {initialVideos.map((video, index) => {
-                const visible = visibleIds.has(video.id);
-                return (
+              <AnimatePresence initial={!hasAnimated}>
+                {filteredVideos.map((video, index) => (
                   <motion.div
                     key={video.id}
                     layout="position"
-                    initial={hasAnimated ? false : CARD_ENTER}
-                    animate={visible ? CARD_VISIBLE : CARD_HIDDEN}
-                    transition={cardTransition(index, visible)}
+                    initial={ANIM_INITIAL_SCALE}
+                    animate={ANIM_ANIMATE_SCALE}
+                    exit={ANIM_EXIT_SCALE}
+                    transition={cardTransition(index)}
                     style={GPU_STYLE}
-                    aria-hidden={!visible}
                   >
                     <TiltCard
                       video={video}
@@ -310,12 +342,12 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
                       onClick={() => handleCardClick(video)}
                     />
                   </motion.div>
-                );
-              })}
+                ))}
+              </AnimatePresence>
             </motion.div>
           </LayoutGroup>
 
-          {!hasVisibleVideos && (
+          {filteredVideos.length === 0 && (
             <div className="text-center py-20 text-gray-400" role="status">
               {t.noVideos}
             </div>
