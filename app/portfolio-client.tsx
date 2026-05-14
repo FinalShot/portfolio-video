@@ -31,11 +31,9 @@ const LAYOUT_SPRING = { type: "spring" as const, stiffness: 400, damping: 35 };
 const ANIM_INITIAL  = { opacity: 0, y: 20 } as const;
 const ANIM_ANIMATE  = { opacity: 1, y: 0 } as const;
 
-// ── Animations grille ───────────────────────────────────────────────────────────────
-const GRID_INITIAL = { opacity: 0, scale: 0.92 } as const;
-const GRID_ANIMATE = { opacity: 1, scale: 1 }    as const;
-const GRID_EXIT    = { opacity: 0, scale: 0.92 } as const;
-// Safari : fade pur, pas de scale
+const GRID_INITIAL        = { opacity: 0, scale: 0.92 } as const;
+const GRID_ANIMATE        = { opacity: 1, scale: 1 }    as const;
+const GRID_EXIT           = { opacity: 0, scale: 0.92 } as const;
 const GRID_SAFARI_INITIAL = { opacity: 0 } as const;
 const GRID_SAFARI_ANIMATE = { opacity: 1 } as const;
 const GRID_SAFARI_EXIT    = { opacity: 0 } as const;
@@ -45,6 +43,15 @@ const SAFARI_GPU_STYLE: React.CSSProperties = {
   transform: "translateZ(0)",
   WebkitBackfaceVisibility: "hidden",
   backfaceVisibility: "hidden",
+};
+
+// Type explicite pour les items de navigation
+type NavItem = {
+  href: string;
+  label: string;
+  onClick: () => void;
+  delay: number;
+  cta?: boolean;
 };
 
 function smoothScrollTo(top: number): void {
@@ -62,12 +69,8 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const [filter, setFilter]                = useState("TOUT");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasAnimated, setHasAnimated]       = useState(false);
+  const [isSafari, setIsSafari]             = useState<boolean | null>(null);
 
-  // ── Détection Safari HYDRATION-SAFE ────────────────────────────────────────────
-  // null = SSR / pas encore détecté, true/false = détecté côté client
-  // Utiliser un state (pas un ref) pour forcer un re-render post-hydration
-  // et garantir que Safari voit bien SafariGrid dès le premier paint client.
-  const [isSafari, setIsSafari] = useState<boolean | null>(null);
   useEffect(() => {
     setIsSafari(/^((?!chrome|android).)*safari/i.test(navigator.userAgent));
   }, []);
@@ -85,7 +88,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     [filter, initialVideos]
   );
 
-  // Bio split une seule fois par render
   const bioLines = useMemo(() => t.about.bio.split("\n"), [t.about.bio]);
 
   const scrollToSection = useCallback((id: string) => {
@@ -103,10 +105,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   }, []);
 
   const headerInitial = (hasAnimated || shouldReduceMotion) ? false : ANIM_INITIAL;
-
-  // ── Paramètres d'animation adaptés selon navigateur ───────────────────────────
-  // isSafari === null pendant SSR → on utilise les anim complètes par défaut
-  // puis le useEffect corrige au premier paint client sur Safari
   const useSafariAnim = isSafari === true;
 
   const gridInitial = useSafariAnim ? GRID_SAFARI_INITIAL : GRID_INITIAL;
@@ -116,18 +114,23 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const gridTransition = useSafariAnim
     ? { opacity: { duration: shouldReduceMotion ? 0 : 0.2, ease: "easeOut" } }
     : {
-        // Chrome/Firefox :
-        // - opacity : stagger uniquement au premier chargement, instantané ensuite
-        // - scale 0.35s : suffisamment long pour être visible avec popLayout
-        // - layout spring : repositionnement des cards restantes
-        opacity: {
-          duration: (shouldReduceMotion || hasAnimated) ? 0 : 0.4,
-          ease: "easeOut",
-          delay: (!hasAnimated && !shouldReduceMotion) ? 0 : 0,
-        },
-        scale:  { duration: shouldReduceMotion ? 0 : 0.35, ease: "easeOut" },
-        layout: LAYOUT_SPRING,
+        opacity: { duration: (shouldReduceMotion || hasAnimated) ? 0 : 0.4, ease: "easeOut" },
+        scale:   { duration: shouldReduceMotion ? 0 : 0.35, ease: "easeOut" },
+        layout:  LAYOUT_SPRING,
       };
+
+  // Tableau typé explicitement — évite l'erreur TS sur la propriété optionnelle `cta`
+  const navItems: NavItem[] = [
+    { href: "#portfolio", label: t.nav.portfolio, onClick: () => smoothScrollTo(0),         delay: 0.08 },
+    { href: "#about",     label: t.nav.about,     onClick: () => scrollToSection("about"),   delay: 0.12 },
+    { href: "#contact",   label: t.nav.contact,   onClick: () => scrollToSection("contact"), delay: 0.16, cta: true },
+  ];
+
+  const mobileNavItems = [
+    { href: "#portfolio", label: t.nav.portfolio, fn: () => { smoothScrollTo(0);              closeMobileMenu(); } },
+    { href: "#about",     label: t.nav.about,     fn: () => { scrollToSection("about");       closeMobileMenu(); } },
+    { href: "#contact",   label: t.nav.contact,   fn: () => { scrollToSection("contact");     closeMobileMenu(); } },
+  ];
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/20">
@@ -144,11 +147,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
           >JEAN LANOT</motion.h1>
 
           <nav className="hidden md:flex items-center gap-8 text-base font-medium" aria-label="Navigation principale">
-            {([
-              { href: "#portfolio", label: t.nav.portfolio, onClick: () => smoothScrollTo(0),          delay: 0.08 },
-              { href: "#about",     label: t.nav.about,     onClick: () => scrollToSection("about"),    delay: 0.12 },
-              { href: "#contact",   label: t.nav.contact,   onClick: () => scrollToSection("contact"),  delay: 0.16, cta: true },
-            ] as const).map(({ href, label, onClick, delay, cta }) => (
+            {navItems.map(({ href, label, onClick, delay, cta }) => (
               <motion.a
                 key={href}
                 href={href}
@@ -196,11 +195,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
               className="absolute top-0 right-0 h-full w-64 bg-[#0a0a0a] border-l border-white/10 pt-24 px-6"
             >
               <div className="flex flex-col gap-6">
-                {([
-                  { href: "#portfolio", label: t.nav.portfolio, fn: () => { smoothScrollTo(0); closeMobileMenu(); } },
-                  { href: "#about",     label: t.nav.about,     fn: () => { scrollToSection("about");   closeMobileMenu(); } },
-                  { href: "#contact",   label: t.nav.contact,   fn: () => { scrollToSection("contact"); closeMobileMenu(); } },
-                ] as const).map(({ href, label, fn }) => (
+                {mobileNavItems.map(({ href, label, fn }) => (
                   <a key={href} href={href} onClick={(e) => { e.preventDefault(); fn(); }}
                     className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
                   >{label}</a>
@@ -238,28 +233,8 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             ))}
           </div>
 
-          {/*
-            GRILLE — architecture unifiée (1 seul composant, 2 modes)
-
-            CHROME/FIREFOX :
-              • mode="popLayout" : les cards sortantes passent en position:absolute
-                pendant l’exit → elles ne bloquent plus le reflow de la grille
-              • layout="position" sur chaque card : repositionnement spring des
-                cards restantes pendant que les sortantes s’estompent
-              • scale 0.92→1 en 0.35s : visible car popLayout laisse le temps
-                à l’animation de se jouer avant le retrait du DOM
-
-            SAFARI :
-              • Pas de LayoutGroup (plus de scan de bounding boxes)
-              • Pas de layout= sur les cards (zéro reflow calculé)
-              • Fade pur opacity 0.2s
-              • contain:layout style paint sur le wrapper : isole le
-                reflow de la grille du reste de la page
-              • content-visibility:auto sur chaque card : Safari ne
-                calcule pas les cards hors viewport
-          */}
+          {/* GRILLE */}
           {useSafariAnim ? (
-            // ─ SAFARI : grille sans LayoutGroup ─
             <div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12"
               style={{ contain: "layout style paint" }}
@@ -270,7 +245,7 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
                     key={video.id}
                     initial={gridInitial} animate={gridAnimate} exit={gridExit}
                     transition={gridTransition}
-                    style={{ ...SAFARI_GPU_STYLE, contentVisibility: "auto", containIntrinsicSize: "0 300px" }}
+                    style={{ ...SAFARI_GPU_STYLE, contentVisibility: "auto", containIntrinsicSize: "0 300px" } as React.CSSProperties}
                   >
                     <TiltCard video={video} priority={index < 3} onClick={() => handleCardClick(video)} />
                   </motion.div>
@@ -278,7 +253,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
               </AnimatePresence>
             </div>
           ) : (
-            // ─ CHROME / FIREFOX / autres : grille avec LayoutGroup + layout ─
             <LayoutGroup id="portfolio-grid">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12">
                 <AnimatePresence mode="popLayout" initial={!hasAnimated}>
