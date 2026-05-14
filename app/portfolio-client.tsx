@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { motion, AnimatePresence, LayoutGroup, useReducedMotion } from "framer-motion";
+import { motion, LayoutGroup, useReducedMotion } from "framer-motion";
 import { Mail, Menu, X, Linkedin, Instagram } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { TiltCard } from "@/components/tilt-card";
@@ -11,7 +11,7 @@ import { translations } from "@/lib/translations";
 import type { Video } from "@/lib/videos";
 import Image from "next/image";
 
-// ─── Constantes globales (hors composant = jamais recréées) ────────────────────
+// ─── Constantes globales ──────────────────────────────────────────────────────
 
 const CATEGORY_KEYS: Record<string, keyof typeof translations["fr"]["categories"]> = {
   TOUT:                   "all",
@@ -29,17 +29,20 @@ const FR_CATEGORIES = [
   "FICTIONS",
 ] as const;
 
-const FADE_DURATION = 0.25;
+const FADE_DURATION  = 0.22;
+const LAYOUT_SPRING  = { type: "spring" as const, stiffness: 400, damping: 35 };
 
-const LAYOUT_SPRING = { type: "spring" as const, stiffness: 400, damping: 35 };
+// États d'animation des cartes
+const CARD_VISIBLE   = { opacity: 1, scale: 1,    display: "block" } as const;
+const CARD_HIDDEN    = { opacity: 0, scale: 0.92, display: "none"  } as const;
+// Entrée initiale (stagger au 1er chargement)
+const CARD_ENTER     = { opacity: 0, scale: 0.92 } as const;
 
-const ANIM_INITIAL       = { opacity: 0, y: 20 }    as const;
-const ANIM_ANIMATE       = { opacity: 1, y: 0 }     as const;
-const ANIM_INITIAL_SCALE = { opacity: 0, scale: 0.92 } as const;
-const ANIM_ANIMATE_SCALE = { opacity: 1, scale: 1 }    as const;
-const ANIM_EXIT_SCALE    = { opacity: 0, scale: 0.92 } as const;
+// Header
+const ANIM_INITIAL   = { opacity: 0, y: 20 } as const;
+const ANIM_ANIMATE   = { opacity: 1, y: 0  } as const;
 
-// GPU compositing Safari / tous navigateurs
+// GPU compositing — Safari + tous navigateurs
 const GPU_STYLE: React.CSSProperties = {
   WebkitTransform: "translateZ(0)",
   transform: "translateZ(0)",
@@ -47,20 +50,9 @@ const GPU_STYLE: React.CSSProperties = {
   backfaceVisibility: "hidden",
 };
 
-type NavItem = {
-  href: string;
-  label: string;
-  onClick: () => void;
-  delay: number;
-  cta?: boolean;
-};
-
 function smoothScrollTo(top: number): void {
-  try {
-    window.scrollTo({ top, behavior: "smooth" });
-  } catch {
-    window.scrollTo(0, top);
-  }
+  try   { window.scrollTo({ top, behavior: "smooth" }); }
+  catch { window.scrollTo(0, top); }
 }
 
 // ─── Composant ────────────────────────────────────────────────────────────────
@@ -74,11 +66,10 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
   const t                  = translations[lang];
   const shouldReduceMotion = useReducedMotion();
 
-  const [filter, setFilter]                 = useState("TOUT");
-  const [mobileMenuOpen, setMobileMenuOpen]  = useState(false);
-  const [hasAnimated, setHasAnimated]        = useState(false);
+  const [filter, setFilter]                = useState("TOUT");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hasAnimated, setHasAnimated]       = useState(false);
 
-  // Scroll en haut + timer pour désactiver les stagger après le premier rendu
   useEffect(() => {
     smoothScrollTo(0);
     const lastIndex = Math.min(initialVideos.length - 1, 29);
@@ -87,14 +78,21 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     return () => clearTimeout(timer);
   }, [initialVideos.length, shouldReduceMotion]);
 
-  // ── Données dérivées mémoïsées ──────────────────────────────────────────────
+  // ── Données dérivées ────────────────────────────────────────────────────────
 
-  const filteredVideos = useMemo(
-    () => filter === "TOUT" ? initialVideos : initialVideos.filter((v) => v.category === filter),
+  // Set des IDs visibles — O(1) lookup, recalculé seulement si filter change
+  const visibleIds = useMemo(
+    () => new Set(
+      filter === "TOUT"
+        ? initialVideos.map((v) => v.id)
+        : initialVideos.filter((v) => v.category === filter).map((v) => v.id)
+    ),
     [filter, initialVideos]
   );
 
   const bioLines = useMemo(() => t.about.bio.split("\n"), [t.about.bio]);
+
+  const hasVisibleVideos = visibleIds.size > 0;
 
   // ── Callbacks stables ───────────────────────────────────────────────────────
 
@@ -112,38 +110,34 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
     if (url) window.open(url, "_blank", "noopener,noreferrer");
   }, []);
 
-  // ── Valeurs d'animation ─────────────────────────────────────────────────────
+  // ── Animations ──────────────────────────────────────────────────────────────
 
-  // Après le premier rendu complet, on désactive les animations d'entrée du header
   const headerInitial = (hasAnimated || shouldReduceMotion) ? false : ANIM_INITIAL;
 
-  // Transition par carte : stagger au premier chargement, fade rapide ensuite
-  const cardTransition = useCallback((index: number) => ({
-    opacity: {
-      duration:  !hasAnimated ? 0.4 : FADE_DURATION,
-      ease:      "easeOut" as const,
-      delay:     !hasAnimated ? index * 0.04 : 0,
-    },
-    scale: {
-      duration:  !hasAnimated ? 0.4 : FADE_DURATION,
-      ease:      "easeOut" as const,
-      delay:     !hasAnimated ? index * 0.04 : 0,
-    },
-    layout: LAYOUT_SPRING,
-  }), [hasAnimated]);
+  // Transition d'une carte selon son état
+  const cardTransition = useCallback((index: number, visible: boolean) => {
+    if (shouldReduceMotion) return { duration: 0 };
+    // Stagger uniquement au 1er chargement pour les cartes visibles
+    const delay = (!hasAnimated && visible) ? index * 0.04 : 0;
+    return {
+      opacity:  { duration: FADE_DURATION, ease: "easeOut" as const, delay },
+      scale:    { duration: FADE_DURATION, ease: "easeOut" as const, delay },
+      layout:   LAYOUT_SPRING,
+    };
+  }, [hasAnimated, shouldReduceMotion]);
 
   // ── Navigation ──────────────────────────────────────────────────────────────
 
-  const navItems: NavItem[] = [
-    { href: "#portfolio", label: t.nav.portfolio, onClick: () => smoothScrollTo(0),          delay: 0.08 },
-    { href: "#about",     label: t.nav.about,     onClick: () => scrollToSection("about"),    delay: 0.12 },
-    { href: "#contact",   label: t.nav.contact,   onClick: () => scrollToSection("contact"),  delay: 0.16, cta: true },
+  const navItems = [
+    { href: "#portfolio", label: t.nav.portfolio, onClick: () => smoothScrollTo(0),         delay: 0.08 },
+    { href: "#about",     label: t.nav.about,     onClick: () => scrollToSection("about"),   delay: 0.12 },
+    { href: "#contact",   label: t.nav.contact,   onClick: () => scrollToSection("contact"), delay: 0.16, cta: true },
   ];
 
   const mobileNavItems = [
-    { href: "#portfolio", label: t.nav.portfolio, fn: () => { smoothScrollTo(0);             closeMobileMenu(); } },
-    { href: "#about",     label: t.nav.about,     fn: () => { scrollToSection("about");       closeMobileMenu(); } },
-    { href: "#contact",   label: t.nav.contact,   fn: () => { scrollToSection("contact");     closeMobileMenu(); } },
+    { href: "#portfolio", label: t.nav.portfolio, fn: () => { smoothScrollTo(0);            closeMobileMenu(); } },
+    { href: "#about",     label: t.nav.about,     fn: () => { scrollToSection("about");      closeMobileMenu(); } },
+    { href: "#contact",   label: t.nav.contact,   fn: () => { scrollToSection("contact");    closeMobileMenu(); } },
   ];
 
   // ── Rendu ───────────────────────────────────────────────────────────────────
@@ -157,7 +151,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
         role="banner"
       >
         <div className="max-w-[95%] mx-auto px-6 h-20 flex items-center justify-between">
-
           <motion.h1
             initial={headerInitial}
             animate={ANIM_ANIMATE}
@@ -169,7 +162,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             JEAN LANOT
           </motion.h1>
 
-          {/* Nav desktop — <a> pour SEO + ouverture onglet */}
           <nav className="hidden md:flex items-center gap-8 text-base font-medium" aria-label="Navigation principale">
             {navItems.map(({ href, label, onClick, delay, cta }) => (
               <motion.a
@@ -198,7 +190,6 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             </motion.div>
           </nav>
 
-          {/* Hamburger */}
           <button
             onClick={() => setMobileMenuOpen((v) => !v)}
             className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -212,45 +203,40 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
       </header>
 
       {/* MENU MOBILE */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
-            className="fixed inset-0 z-40 md:hidden"
-            id="mobile-menu"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu de navigation"
-          >
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeMobileMenu} />
-            <motion.nav
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: shouldReduceMotion ? 500 : 300 }}
-              style={GPU_STYLE}
-              className="absolute top-0 right-0 h-full w-64 bg-[#0a0a0a] border-l border-white/10 pt-24 px-6"
-            >
-              <div className="flex flex-col gap-6">
-                {mobileNavItems.map(({ href, label, fn }) => (
-                  <a
-                    key={href}
-                    href={href}
-                    onClick={(e) => { e.preventDefault(); fn(); }}
-                    className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
-                  >
-                    {label}
-                  </a>
-                ))}
-                <div className="py-2 border-b border-white/5"><LanguageToggle /></div>
-              </div>
-            </motion.nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <motion.div
+        initial={false}
+        animate={mobileMenuOpen ? { opacity: 1, pointerEvents: "auto" as const } : { opacity: 0, pointerEvents: "none" as const }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+        className="fixed inset-0 z-40 md:hidden"
+        id="mobile-menu"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu de navigation"
+        aria-hidden={!mobileMenuOpen}
+      >
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeMobileMenu} />
+        <motion.nav
+          initial={false}
+          animate={{ x: mobileMenuOpen ? 0 : "100%" }}
+          transition={{ type: "spring", damping: 25, stiffness: shouldReduceMotion ? 500 : 300 }}
+          style={GPU_STYLE}
+          className="absolute top-0 right-0 h-full w-64 bg-[#0a0a0a] border-l border-white/10 pt-24 px-6"
+        >
+          <div className="flex flex-col gap-6">
+            {mobileNavItems.map(({ href, label, fn }) => (
+              <a
+                key={href}
+                href={href}
+                onClick={(e) => { e.preventDefault(); fn(); }}
+                className="text-left text-lg font-medium hover:text-gray-300 transition-colors py-2 border-b border-white/5"
+              >
+                {label}
+              </a>
+            ))}
+            <div className="py-2 border-b border-white/5"><LanguageToggle /></div>
+          </div>
+        </motion.nav>
+      </motion.div>
 
       <main className="pt-32 pb-20 px-6 max-w-[95%] mx-auto" id="portfolio">
 
@@ -287,23 +273,35 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
             ))}
           </div>
 
-          {/* Grille — même architecture que main : LayoutGroup + layout="position" */}
+          {/*
+            ── Grille no-unmount ───────────────────────────────────────────────
+            Toutes les cartes sont TOUJOURS montées → les <Image> ne sont jamais
+            déchargées → zéro re-decode au changement de filtre.
+
+            Fonctionnement :
+            - visible  → animate vers CARD_VISIBLE  (opacity 1, scale 1, display block)
+            - invisible → animate vers CARD_HIDDEN   (opacity 0, scale 0.92, display none)
+            framer-motion applique display:none APRÈS la fin de l'animation de sortie,
+            donc le fade-out/scale-down joue bien avant que la case disparaisse du flux.
+            Les cartes restantes se repositionnent via layout="position" + LAYOUT_SPRING.
+          */}
           <LayoutGroup id="portfolio-grid">
             <motion.div
               layout="position"
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-12"
               transition={LAYOUT_SPRING}
             >
-              <AnimatePresence initial={!hasAnimated}>
-                {filteredVideos.map((video, index) => (
+              {initialVideos.map((video, index) => {
+                const visible = visibleIds.has(video.id);
+                return (
                   <motion.div
                     key={video.id}
                     layout="position"
-                    initial={ANIM_INITIAL_SCALE}
-                    animate={ANIM_ANIMATE_SCALE}
-                    exit={ANIM_EXIT_SCALE}
-                    transition={cardTransition(index)}
+                    initial={hasAnimated ? false : CARD_ENTER}
+                    animate={visible ? CARD_VISIBLE : CARD_HIDDEN}
+                    transition={cardTransition(index, visible)}
                     style={GPU_STYLE}
+                    aria-hidden={!visible}
                   >
                     <TiltCard
                       video={video}
@@ -312,12 +310,12 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
                       onClick={() => handleCardClick(video)}
                     />
                   </motion.div>
-                ))}
-              </AnimatePresence>
+                );
+              })}
             </motion.div>
           </LayoutGroup>
 
-          {filteredVideos.length === 0 && (
+          {!hasVisibleVideos && (
             <div className="text-center py-20 text-gray-400" role="status">
               {t.noVideos}
             </div>
@@ -393,29 +391,13 @@ export function PortfolioClient({ initialVideos }: PortfolioClientProps) {
       <footer className="py-8 border-t border-white/5" role="contentinfo">
         <div className="flex flex-col items-center gap-4">
           <div className="flex items-center gap-4">
-            <a
-              href="https://www.linkedin.com/in/jean-lanot"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="LinkedIn de Jean Lanot"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
+            <a href="https://www.linkedin.com/in/jean-lanot" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn de Jean Lanot" className="text-gray-400 hover:text-white transition-colors">
               <Linkedin className="w-5 h-5" aria-hidden="true" />
             </a>
-            <a
-              href="https://www.instagram.com/jean_lanot/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram de Jean Lanot"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
+            <a href="https://www.instagram.com/jean_lanot/" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Jean Lanot" className="text-gray-400 hover:text-white transition-colors">
               <Instagram className="w-5 h-5" aria-hidden="true" />
             </a>
-            <a
-              href="mailto:contact@jeanlanot.com"
-              aria-label="Envoyer un email à Jean Lanot"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
+            <a href="mailto:contact@jeanlanot.com" aria-label="Envoyer un email à Jean Lanot" className="text-gray-400 hover:text-white transition-colors">
               <Mail className="w-5 h-5" aria-hidden="true" />
             </a>
           </div>
