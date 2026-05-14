@@ -13,7 +13,6 @@ import type { Video } from "@/lib/videos";
 import { Play } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 
-// Constante hors du composant — référence stable entre les renders
 const CATEGORY_LABELS: Record<string, { fr: string; en: string }> = {
   "PUBS & BRAND CONTENT": { fr: "PUBS & BRAND CONTENT", en: "ADS & BRAND CONTENT" },
   "EMISSIONS & DOCS":     { fr: "ÉMISSIONS & DOCS",     en: "SHOWS & DOCS" },
@@ -21,19 +20,22 @@ const CATEGORY_LABELS: Record<string, { fr: string; en: string }> = {
   FICTIONS:               { fr: "FICTIONS",             en: "FICTION" },
 };
 
+const SPRING_CONFIG  = { stiffness: 300, damping: 30 } as const;
+// useSpring avec stiffness:0 produit des NaN — on neutralise via les valeurs de rotateX/Y à la place
+const SPRING_NEUTRAL = { stiffness: 300, damping: 30 } as const;
+
 interface TiltCardProps {
   video: Video;
   onClick?: () => void;
   priority?: boolean;
-  index?: number;
 }
 
 function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef            = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isTouch, setIsTouch]     = useState(false);
-  const { lang }                  = useLang();
-  const shouldReduceMotion        = useReducedMotion();
+  const { lang }           = useLang();
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     setIsTouch(window.matchMedia("(hover: none)").matches);
@@ -42,21 +44,15 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
 
-  const rotateXBase = useTransform(y, [0, 1], [6, -6]);
-  const rotateYBase = useTransform(x, [0, 1], [-6, 6]);
+  const rotateXRaw = useTransform(y, [0, 1], [6, -6]);
+  const rotateYRaw = useTransform(x, [0, 1], [-6, 6]);
+  const rotateX    = useSpring(rotateXRaw, SPRING_NEUTRAL);
+  const rotateY    = useSpring(rotateYRaw, SPRING_NEUTRAL);
 
-  // Si prefers-reduced-motion, les springs restent à 0 → pas d'inclinaison
-  const springConfig = shouldReduceMotion
-    ? { stiffness: 0, damping: 0 }
-    : { stiffness: 300, damping: 30 };
-  const rotateX = useSpring(rotateXBase, springConfig);
-  const rotateY = useSpring(rotateYBase, springConfig);
-
-  const glareX   = useTransform(x, [0, 1], ["-50%", "150%"]);
-  const glareY   = useTransform(y, [0, 1], ["-50%", "150%"]);
+  const glareX     = useTransform(x, [0, 1], ["-50%", "150%"]);
+  const glareY     = useTransform(y, [0, 1], ["-50%", "150%"]);
   const background = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 20%, transparent 50%)`;
 
-  // useCallback — référence stable, évite les re-rendus React.memo
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (isTouch || shouldReduceMotion || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
@@ -75,6 +71,10 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
   }, [isTouch, shouldReduceMotion]);
 
   const categoryLabel = CATEGORY_LABELS[video.category]?.[lang] ?? video.category;
+  // Tilt désactivé si reduced motion ou touch : retour à 0 (pas de NaN)
+  const tiltX = (shouldReduceMotion || isTouch) ? 0 : rotateX;
+  const tiltY = (shouldReduceMotion || isTouch) ? 0 : rotateY;
+  const animDuration = shouldReduceMotion ? 0 : 0.3;
 
   return (
     <motion.div
@@ -83,21 +83,17 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
       style={{
         perspective: 1000,
         aspectRatio: "16 / 9",
-        // Fallback padding-bottom pour Firefox < 88 (support > 98% en 2026 — sécurité)
         willChange: "transform",
         WebkitTransform: "translateZ(0)",
         transform: "translateZ(0)",
         WebkitBackfaceVisibility: "hidden",
         backfaceVisibility: "hidden",
-        // touch-action: manipulation désactive le double-tap zoom iOS
-        // et empêche le délai de 300ms sur les taps sur iOS Safari
         touchAction: "manipulation",
       }}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
-      // Accessibilité : la card est un lien/bouton
       role="button"
       tabIndex={0}
       aria-label={`Voir la vidéo : ${video.title}`}
@@ -106,8 +102,8 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
       <motion.div
         className="relative h-full w-full rounded-xl overflow-hidden border border-white/5"
         style={{
-          rotateX: shouldReduceMotion ? 0 : rotateX,
-          rotateY: shouldReduceMotion ? 0 : rotateY,
+          rotateX: tiltX,
+          rotateY: tiltY,
           willChange: "transform",
           WebkitBackfaceVisibility: "hidden",
           backfaceVisibility: "hidden",
@@ -125,40 +121,32 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
             priority={priority}
             loading={priority ? "eager" : "lazy"}
             placeholder="blur"
-            blurDataURL={`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E`}
+            blurDataURL="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
           />
         </div>
 
-        {/* Gradient bas (titre) */}
+        {/* Gradient bas */}
         <motion.div
           className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
           animate={{ opacity: isHovered ? 0 : 1 }}
-          transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
+          transition={{ duration: animDuration }}
         />
 
-        {/* Glare — désactivé sur touch et prefers-reduced-motion */}
+        {/* Glare — désactivé sur touch + reduced motion */}
         {!isTouch && !shouldReduceMotion && (
           <motion.div
             className="pointer-events-none absolute inset-0 rounded-xl overflow-hidden"
-            style={{
-              background,
-              mixBlendMode: "soft-light",
-              // will-change:opacity améliore le compositing sur Firefox
-              willChange: "opacity",
-            }}
+            style={{ background, mixBlendMode: "soft-light", willChange: "opacity" }}
             animate={{ opacity: isHovered ? 1 : 0 }}
             transition={{ duration: 0.5 }}
           />
         )}
 
-        {/* Play button */}
+        {/* Bouton play */}
         <motion.div
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
           initial={{ opacity: 0, scale: 0.8 }}
-          animate={{
-            opacity: isHovered || isTouch ? 1 : 0,
-            scale:   isHovered || isTouch ? 1 : 0.8,
-          }}
+          animate={{ opacity: isHovered || isTouch ? 1 : 0, scale: isHovered || isTouch ? 1 : 0.8 }}
           transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
           aria-hidden="true"
         >
@@ -167,14 +155,11 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
           </div>
         </motion.div>
 
-        {/* Video info */}
+        {/* Titre + catégorie */}
         <div className="absolute inset-0 flex flex-col justify-end p-5">
           <motion.div
-            animate={{
-              y: isHovered ? -10 : 0,
-              opacity: isHovered ? 0 : 1,
-            }}
-            transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
+            animate={{ y: isHovered ? -10 : 0, opacity: isHovered ? 0 : 1 }}
+            transition={{ duration: animDuration }}
           >
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
               {categoryLabel}
@@ -189,7 +174,7 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
         <motion.div
           className="absolute inset-0 rounded-xl border border-white/20 pointer-events-none"
           animate={{ opacity: isHovered ? 1 : 0 }}
-          transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
+          transition={{ duration: animDuration }}
           aria-hidden="true"
         />
       </motion.div>
@@ -197,6 +182,4 @@ function TiltCardInner({ video, onClick, priority = false }: TiltCardProps) {
   );
 }
 
-// React.memo — empêche le re-rendu quand les props video/onClick/priority n'ont pas changé
-// Résout le problème de re-rendu en cascade lors du changement de filter
 export const TiltCard = React.memo(TiltCardInner);
