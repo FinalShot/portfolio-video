@@ -7,7 +7,7 @@ const YOUTUBE_PLAYLIST_IDS: Record<string, string> = {
   "PUBS & BRAND CONTENT": "PLikZKcR_ooRCVFgNcJ-f8GDN-rO8HYM0F",
   "EMISSIONS & DOCS":     "PLikZKcR_ooRAYr18pyDSFHFhBUUN9kQOf",
   "BANDES-ANNONCES":      "PLikZKcR_ooRBcDzII69qz11FoZOk5-Lh8",
-  FICTIONS:               "PLikZKcR_ooRBvbYlqu2rHz4-oge2Qps4a",
+  "FICTIONS":             "PLikZKcR_ooRBvbYlqu2rHz4-oge2Qps4a",
 };
 
 type PlaylistItem = {
@@ -23,6 +23,15 @@ type PlaylistItem = {
 };
 
 const EXTERNAL_VIDEOS = [
+  
+    {
+      title: "M6 - Le Meilleur Pâtissier",
+      thumbnailUrl: "/thumbnails/LMP.jpg",
+      videoUrl: "https://www.instagram.com/reels/DaS3RQAxnbC/",
+      category: "BANDES-ANNONCES" as const,
+      date: "2026-07-02",
+    },
+
   {
     title: "Marie Jo Lingerie – Paris",
     thumbnailUrl: "/thumbnails/marie-jo.jpg",
